@@ -73,7 +73,9 @@ const experience: ExperienceItem[] = [
   {
     title: "Personal Portfolio Website",
     subtitle: "This site — designed and built from scratch",
-    detail: "Next.js · Tailwind CSS · Vercel",
+    detail: "Next.js · Tailwind CSS · GitHub Pages",
+    live: "https://samgabriel-here.github.io/",
+    source: "https://github.com/SamGabriel-Here/samgabriel-here.github.io",
   },
 ];
 
