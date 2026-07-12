@@ -434,11 +434,13 @@ function Experience() {
             {item.media && (
               <video
                 src={item.media}
+                poster={item.media.replace(/\.mp4$/, ".jpg")}
                 className="mb-4 w-full rounded-xl border border-white/10"
                 autoPlay
                 loop
                 muted
                 playsInline
+                preload="auto"
               />
             )}
             <h3 className="font-grotesk text-lg font-semibold">{item.title}</h3>
