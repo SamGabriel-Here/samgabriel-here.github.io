@@ -24,6 +24,7 @@ type ExperienceItem = {
   live?: string;
   source?: string;
   media?: string;
+  thumb?: string;
 };
 
 const internship = {
@@ -49,6 +50,7 @@ const experience: ExperienceItem[] = [
     detail: "Python · XGBoost · Streamlit",
     live: "https://nestworth.streamlit.app",
     source: "https://github.com/SamGabriel-Here/nestworth",
+    thumb: "/nestworth.jpg",
   },
   {
     title: "ShowRush",
@@ -57,6 +59,7 @@ const experience: ExperienceItem[] = [
     detail: "Flutter · Dart · Material 3",
     live: "https://samgabriel-here.github.io/movie-booking-app/",
     source: "https://github.com/SamGabriel-Here/movie-booking-app",
+    thumb: "/showrush.jpg",
   },
   {
     title: "Distant LOD (MACLOD)",
@@ -64,6 +67,7 @@ const experience: ExperienceItem[] = [
       "Far-terrain renderer for Minecraft — real distant terrain beyond the vanilla horizon",
     detail: "Java · Fabric · OpenGL/GLSL",
     source: "https://github.com/SamGabriel-Here/MACLOD",
+    thumb: "/maclod.jpg",
   },
   {
     title: "Internship Allocator",
@@ -71,6 +75,7 @@ const experience: ExperienceItem[] = [
       "ML-powered portal that recommends internship companies from student profiles",
     detail: "Python · scikit-learn · Flask",
     source: "https://github.com/SamGabriel-Here/Internship-Allocator",
+    thumb: "/nextern.jpg",
   },
   {
     title: "GitHub Repo Analyzer",
@@ -78,6 +83,7 @@ const experience: ExperienceItem[] = [
       "Full-stack app that scores README quality with NLP and suggests improvements",
     detail: "React · FastAPI · Python · NLP",
     source: "https://github.com/SamGabriel-Here/Github-Repo-Analyzer",
+    thumb: "/repoanalyzer.jpg",
   },
   {
     title: "Personal Portfolio Website",
@@ -85,6 +91,7 @@ const experience: ExperienceItem[] = [
     detail: "Next.js · Tailwind CSS · Vercel",
     live: "https://samgabriel.vercel.app/",
     source: "https://github.com/SamGabriel-Here/samgabriel-here.github.io",
+    thumb: "/portfolio.jpg",
   },
 ];
 
@@ -431,7 +438,7 @@ function Experience() {
             key={item.title}
             className="rounded-2xl border border-white/5 bg-neutral-900/70 p-6 transition-colors hover:border-teal-400/30 hover:bg-teal-950/30"
           >
-            {item.media && (
+            {item.media ? (
               <video
                 src={item.media}
                 poster={item.media.replace(/\.mp4$/, ".jpg")}
@@ -442,6 +449,16 @@ function Experience() {
                 playsInline
                 preload="auto"
               />
+            ) : (
+              item.thumb && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.thumb}
+                  alt={`${item.title} preview`}
+                  className="mb-4 w-full rounded-xl border border-white/10"
+                  loading="lazy"
+                />
+              )
             )}
             <h3 className="font-grotesk text-lg font-semibold">{item.title}</h3>
             <p className="mt-1 text-sm leading-relaxed text-neutral-400">
