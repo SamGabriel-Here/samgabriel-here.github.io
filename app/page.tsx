@@ -23,6 +23,7 @@ type ExperienceItem = {
   detail: string;
   live?: string;
   source?: string;
+  media?: string;
 };
 
 const internship = {
@@ -34,6 +35,14 @@ const internship = {
 };
 
 const experience: ExperienceItem[] = [
+  {
+    title: "nbodyssey",
+    subtitle:
+      "GPU galaxy-collision simulator — Barnes-Hut tree code measured 176× faster than brute force at one million particles on a Tesla T4",
+    detail: "CUDA C++ · C++17 · CMake",
+    source: "https://github.com/SamGabriel-Here/nbodyssey",
+    media: "/nbodyssey.mp4",
+  },
   {
     title: "NestWorth",
     subtitle: "House price prediction for five Indian metros",
@@ -98,7 +107,7 @@ const stack = [
   },
   {
     category: "Languages",
-    items: ["C", "C++", "Python", "Java", "JavaScript", "SQL", "Dart"],
+    items: ["C", "C++", "CUDA C++", "Python", "Java", "JavaScript", "SQL", "Dart"],
   },
   {
     category: "Tools",
@@ -422,6 +431,16 @@ function Experience() {
             key={item.title}
             className="rounded-2xl border border-white/5 bg-neutral-900/70 p-6 transition-colors hover:border-teal-400/30 hover:bg-teal-950/30"
           >
+            {item.media && (
+              <video
+                src={item.media}
+                className="mb-4 w-full rounded-xl border border-white/10"
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
+            )}
             <h3 className="font-grotesk text-lg font-semibold">{item.title}</h3>
             <p className="mt-1 text-sm leading-relaxed text-neutral-400">
               {item.subtitle}
