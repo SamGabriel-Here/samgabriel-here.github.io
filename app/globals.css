@@ -168,4 +168,14 @@ body {
   .dot-live {
     animation: none !important;
   }
+  .bg-loop video {
+    display: none;
+  }
+}
+
+/* Skip the background film on small screens to save data */
+@media (max-width: 640px) {
+  .bg-loop video {
+    display: none;
+  }
 }

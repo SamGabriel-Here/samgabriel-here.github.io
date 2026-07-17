@@ -355,6 +355,31 @@ function Nebula() {
   return <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 -z-10" />;
 }
 
+// MelodySheep's "Let There Be Life" cosmic art loop, drifting beneath everything
+function BackgroundLoop() {
+  return (
+    <div aria-hidden className="bg-loop pointer-events-none fixed inset-0 -z-20">
+      <video
+        src="/cosmic-loop.mp4"
+        poster="/cosmic-loop.jpg"
+        className="h-full w-full object-cover opacity-55"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata"
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(120% 100% at 50% 30%, rgba(4,3,8,0.3) 0%, rgba(4,3,8,0.72) 100%)",
+        }}
+      />
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Small building blocks                                             */
 /* ------------------------------------------------------------------ */
@@ -1001,6 +1026,7 @@ export default function Home() {
 
   return (
     <div className="relative pb-10">
+      <BackgroundLoop />
       <Nebula />
       <div className="fx-vignette" />
       <div className="fx-grain" />
