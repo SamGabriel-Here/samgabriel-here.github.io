@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Geist, Geist_Mono, Space_Grotesk, Anton } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,10 +17,16 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
+const anton = Anton({
+  variable: "--font-anton",
+  weight: "400",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "Sam Gabriel",
+  title: "Sam Gabriel — ML / Software",
   description:
-    "Personal site of Sam Gabriel — projects, writing, and ways to get in touch.",
+    "Sam Gabriel — machine learning and software engineer. GPU simulation, ML apps, and things built with data and code. Selected transmissions from the field.",
 };
 
 export default function RootLayout({
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${anton.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
