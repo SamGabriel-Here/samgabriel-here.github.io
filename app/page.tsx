@@ -45,7 +45,7 @@ const projects: Project[] = [
     detail: "CUDA C++ · C++17 · CMake",
     source: "https://github.com/SamGabriel-Here/nbodyssey",
     media: "/nbodyssey.mp4",
-    accent: "245,192,102",
+    accent: "37,99,235",
   },
   {
     code: "TX-02",
@@ -56,7 +56,7 @@ const projects: Project[] = [
     live: "https://nestworth.streamlit.app",
     source: "https://github.com/SamGabriel-Here/nestworth",
     thumb: "/nestworth.jpg",
-    accent: "139,92,246",
+    accent: "59,130,246",
   },
   {
     code: "TX-03",
@@ -68,7 +68,7 @@ const projects: Project[] = [
     live: "https://samgabriel-here.github.io/movie-booking-app/",
     source: "https://github.com/SamGabriel-Here/movie-booking-app",
     thumb: "/showrush.jpg",
-    accent: "251,113,133",
+    accent: "99,102,241",
   },
   {
     code: "TX-04",
@@ -79,7 +79,7 @@ const projects: Project[] = [
     detail: "Java · Fabric · OpenGL / GLSL",
     source: "https://github.com/SamGabriel-Here/MACLOD",
     thumb: "/maclod.jpg",
-    accent: "249,115,22",
+    accent: "139,92,246",
   },
   {
     code: "TX-05",
@@ -90,7 +90,7 @@ const projects: Project[] = [
     detail: "Python · scikit-learn · Flask",
     source: "https://github.com/SamGabriel-Here/Internship-Allocator",
     thumb: "/nextern.jpg",
-    accent: "99,102,241",
+    accent: "168,85,247",
   },
   {
     code: "TX-06",
@@ -101,14 +101,14 @@ const projects: Project[] = [
     detail: "React · FastAPI · Python · NLP",
     source: "https://github.com/SamGabriel-Here/Github-Repo-Analyzer",
     thumb: "/repoanalyzer.jpg",
-    accent: "236,72,153",
+    accent: "192,132,252",
   },
 ];
 
 const stats = [
-  { target: 6, suffix: "", pad: 2, label: "Projects Shipped", color: "var(--gold)" },
-  { target: 8, suffix: "", pad: 2, label: "Languages Spoken", color: "var(--rose)" },
-  { target: 176, suffix: "×", pad: 0, label: "Peak GPU Speedup", color: "var(--violet)" },
+  { target: 6, suffix: "", pad: 2, label: "Projects Shipped", color: "var(--blue)" },
+  { target: 8, suffix: "", pad: 2, label: "Languages Spoken", color: "var(--violet)" },
+  { target: 176, suffix: "×", pad: 0, label: "Peak GPU Speedup", color: "var(--purple)" },
 ];
 
 const internship = {
@@ -158,7 +158,7 @@ function makeStars(count: number) {
     twinkleSpeed: 0.0004 + rand() * 0.001,
     vx: (rand() - 0.5) * 0.008,
     vy: (rand() - 0.5) * 0.005,
-    tint: rand() < 0.3 ? "253,224,178" : "226,232,240",
+    tint: rand() < 0.3 ? "191,219,254" : "226,232,240",
   }));
 }
 
@@ -213,14 +213,14 @@ function Nebula() {
     };
     window.addEventListener("mousemove", onMove);
 
-    // MelodySheep-style nebula: crimson/magenta clouds, violet glow, golden first light
+    // Deep-space nebula spanning the blue→violet spectrum, extreme to extreme
     const clouds = [
-      { x: 0.14, y: 0.28, r: 0.5, rgb: "225,29,72", a: 0.15, s: 0.06, p: 0, d: 0.1 },
-      { x: 0.5, y: 0.1, r: 0.45, rgb: "139,92,246", a: 0.12, s: 0.045, p: 2, d: 0.07 },
-      { x: 0.88, y: 0.32, r: 0.48, rgb: "219,39,119", a: 0.13, s: 0.05, p: 4, d: 0.12 },
-      { x: 0.26, y: 0.8, r: 0.45, rgb: "234,88,44", a: 0.09, s: 0.07, p: 1, d: 0.08 },
-      { x: 0.78, y: 0.85, r: 0.42, rgb: "99,102,241", a: 0.1, s: 0.055, p: 5, d: 0.11 },
-      { x: 0.52, y: 0.6, r: 0.34, rgb: "245,192,102", a: 0.1, s: 0.04, p: 3, d: 0.09 },
+      { x: 0.14, y: 0.28, r: 0.5, rgb: "29,78,216", a: 0.16, s: 0.06, p: 0, d: 0.1 },
+      { x: 0.5, y: 0.1, r: 0.45, rgb: "99,102,241", a: 0.12, s: 0.045, p: 2, d: 0.07 },
+      { x: 0.88, y: 0.32, r: 0.48, rgb: "139,92,246", a: 0.13, s: 0.05, p: 4, d: 0.12 },
+      { x: 0.26, y: 0.8, r: 0.45, rgb: "59,130,246", a: 0.1, s: 0.07, p: 1, d: 0.08 },
+      { x: 0.78, y: 0.85, r: 0.42, rgb: "168,85,247", a: 0.11, s: 0.055, p: 5, d: 0.11 },
+      { x: 0.52, y: 0.6, r: 0.34, rgb: "96,165,250", a: 0.09, s: 0.04, p: 3, d: 0.09 },
     ];
 
     // Dark smoke that occludes the glow — gives the clouds volume
@@ -231,8 +231,8 @@ function Nebula() {
     ];
 
     const galaxies = [
-      { particles: makeGalaxy(190, 0), tint: "245,208,150", phase: 0, tilt: 0.5, flatten: 0.45 },
-      { particles: makeGalaxy(190, 999), tint: "196,181,253", phase: Math.PI, tilt: -0.7, flatten: 0.5 },
+      { particles: makeGalaxy(190, 0), tint: "147,197,253", phase: 0, tilt: 0.5, flatten: 0.45 },
+      { particles: makeGalaxy(190, 999), tint: "216,180,254", phase: Math.PI, tilt: -0.7, flatten: 0.5 },
     ];
 
     const stars = makeStars(120);
@@ -355,15 +355,48 @@ function Nebula() {
   return <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 -z-10" />;
 }
 
-// MelodySheep's "Let There Be Life" cosmic art loop, drifting beneath everything
+// Original generated cosmos loop (blue→violet spectrum), drifting beneath everything.
+// The film only plays while the visitor interacts — the cosmos moves when you do.
 function BackgroundLoop() {
+  const vref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = vref.current;
+    if (!v) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const rest = () => v.pause();
+    const onActivity = () => {
+      if (v.paused) v.play().catch(() => {});
+      clearTimeout(timer);
+      timer = setTimeout(rest, 1800);
+    };
+
+    const events: (keyof WindowEventMap)[] = [
+      "scroll",
+      "wheel",
+      "mousemove",
+      "pointerdown",
+      "keydown",
+      "touchstart",
+      "touchmove",
+    ];
+    for (const e of events) window.addEventListener(e, onActivity, { passive: true });
+
+    return () => {
+      for (const e of events) window.removeEventListener(e, onActivity);
+      clearTimeout(timer);
+    };
+  }, []);
+
   return (
     <div aria-hidden className="bg-loop pointer-events-none fixed inset-0 -z-20">
       <video
+        ref={vref}
         src="/cosmic-loop.mp4"
         poster="/cosmic-loop.jpg"
         className="h-full w-full object-cover opacity-55"
-        autoPlay
         loop
         muted
         playsInline
@@ -373,7 +406,7 @@ function BackgroundLoop() {
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(120% 100% at 50% 30%, rgba(4,3,8,0.3) 0%, rgba(4,3,8,0.72) 100%)",
+            "radial-gradient(120% 100% at 50% 30%, rgba(3,3,9,0.3) 0%, rgba(3,3,9,0.72) 100%)",
         }}
       />
     </div>
@@ -384,7 +417,7 @@ function BackgroundLoop() {
 /*  Small building blocks                                             */
 /* ------------------------------------------------------------------ */
 
-function Kicker({ children, color = "var(--gold)" }: { children: React.ReactNode; color?: string }) {
+function Kicker({ children, color = "var(--blue)" }: { children: React.ReactNode; color?: string }) {
   return (
     <p className="mono flex items-center gap-3 text-[10px] sm:text-xs" style={{ color }}>
       <span className="inline-block h-px w-8" style={{ background: color }} />
@@ -477,7 +510,7 @@ function TopBar() {
     <header className="fixed inset-x-0 top-0 z-40">
       <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#03040790] px-5 py-3 backdrop-blur-md sm:px-8">
         <a href="#about" className="flex items-center gap-2.5 group">
-          <span className="text-amber-300 transition-transform group-hover:rotate-90">✳</span>
+          <span className="text-blue-400 transition-transform group-hover:rotate-90">✳</span>
           <span className="mono text-[11px] text-neutral-200 sm:text-xs">Sam Gabriel</span>
         </a>
         <nav className="hidden items-center gap-1 md:flex">
@@ -486,7 +519,7 @@ function TopBar() {
               key={item.id}
               href={`#${item.id}`}
               className={`mono rounded px-3 py-1.5 text-[10px] transition-colors ${
-                active === item.id ? "text-amber-300" : "text-neutral-500 hover:text-neutral-200"
+                active === item.id ? "text-blue-300" : "text-neutral-500 hover:text-neutral-200"
               }`}
             >
               {item.label}
@@ -495,7 +528,7 @@ function TopBar() {
         </nav>
         <a
           href="#contact"
-          className="mono flex items-center gap-1.5 text-[10px] text-neutral-300 transition-colors hover:text-amber-300 sm:text-xs"
+          className="mono flex items-center gap-1.5 text-[10px] text-neutral-300 transition-colors hover:text-blue-300 sm:text-xs"
         >
           Transmit <span aria-hidden>↗</span>
         </a>
@@ -543,7 +576,7 @@ function CaptionBar() {
         </span>
         <span className="mono text-[9px] text-neutral-300 sm:text-[10px]">{chapter}</span>
         <span className="mono hidden items-center gap-2 text-[9px] text-neutral-600 lg:flex">
-          <span className="dot-live inline-block h-1.5 w-1.5 rounded-full bg-amber-300" />
+          <span className="dot-live inline-block h-1.5 w-1.5 rounded-full bg-blue-400" />
           <Clock /> LT
         </span>
       </div>
@@ -561,13 +594,13 @@ function Hero() {
       id="about"
       className="relative flex min-h-screen flex-col justify-center overflow-hidden px-5 pb-28 pt-28 sm:px-10"
     >
-      {/* golden first-light bloom rising behind the name */}
+      {/* electric first-light bloom rising behind the name */}
       <div
         aria-hidden
         className="pointer-events-none absolute left-[-10%] top-[30%] -z-[1] h-[70vmin] w-[90vmin] opacity-70"
         style={{
           background:
-            "radial-gradient(50% 50% at 50% 50%, rgba(245,192,102,0.32) 0%, rgba(234,88,44,0.14) 40%, rgba(219,39,119,0.05) 65%, transparent 78%)",
+            "radial-gradient(50% 50% at 50% 50%, rgba(59,130,246,0.3) 0%, rgba(99,102,241,0.15) 40%, rgba(168,85,247,0.06) 65%, transparent 78%)",
           filter: "blur(14px)",
         }}
       />
@@ -589,7 +622,7 @@ function Hero() {
           </p>
           <div className="mono flex items-center gap-3 text-[10px] text-neutral-600">
             <span>Scroll to traverse</span>
-            <span className="inline-block h-8 w-px animate-pulse bg-gradient-to-b from-amber-300 to-transparent" />
+            <span className="inline-block h-8 w-px animate-pulse bg-gradient-to-b from-blue-400 to-transparent" />
           </div>
         </div>
       </div>
@@ -600,7 +633,7 @@ function Hero() {
           {[...roles, ...roles, ...roles].map((role, i) => (
             <span key={i} className="mono mx-6 whitespace-nowrap text-[11px] text-neutral-600">
               {role}
-              <span className="ml-6 text-amber-400/50">✳</span>
+              <span className="ml-6 text-blue-400/50">✳</span>
             </span>
           ))}
         </div>
@@ -616,7 +649,7 @@ function ProjectCard({ p, featured }: { p: Project; featured?: boolean }) {
       href={primaryHref}
       target="_blank"
       rel="noopener noreferrer"
-      className={`reveal group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-950/40 transition-all duration-500 hover:border-white/20 hover:-translate-y-1 ${
+      className={`reveal group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-950/40 transition-all duration-500 hover:border-white/20 hover:-translate-y-1 ${
         featured ? "sm:col-span-2 sm:flex-row" : ""
       }`}
       style={{ boxShadow: "0 0 0 rgba(0,0,0,0)" }}
@@ -685,7 +718,7 @@ function ProjectCard({ p, featured }: { p: Project; featured?: boolean }) {
           {p.subtitle}
         </p>
         <p className="mono mt-3 text-[9px] text-neutral-600">{p.detail}</p>
-        <div className="mono mt-4 flex items-center gap-4 text-[10px]">
+        <div className="mono mt-auto flex items-center gap-4 pt-4 text-[10px]">
           <span
             className="flex items-center gap-1.5 transition-colors"
             style={{ color: `rgb(${p.accent})` }}
@@ -718,7 +751,7 @@ function Work() {
             href={github}
             target="_blank"
             rel="noopener noreferrer"
-            className="mono rounded-full border border-white/15 px-6 py-3 text-[11px] text-neutral-300 transition-colors hover:border-amber-300/50 hover:text-amber-300"
+            className="mono rounded-full border border-white/15 px-6 py-3 text-[11px] text-neutral-300 transition-colors hover:border-blue-400/50 hover:text-blue-300"
           >
             All repositories on GitHub ↗
           </a>
@@ -738,7 +771,7 @@ function TechBand() {
               <span className="font-display text-2xl text-neutral-400 transition-colors hover:text-neutral-100 sm:text-3xl">
                 {t}
               </span>
-              <span className="text-rose-400/40">✳</span>
+              <span className="text-violet-400/40">✳</span>
             </span>
           ))}
         </div>
@@ -788,21 +821,23 @@ function Log() {
           {/* Experience */}
           <div className="reveal">
             <p className="mono text-[10px] text-neutral-600">01 / Experience</p>
-            <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-950/10 p-6">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className="mt-4 rounded-2xl border border-blue-400/20 bg-blue-950/15 p-6">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
                 <h3 className="font-grotesk text-lg font-semibold text-neutral-100">
                   {internship.title}
-                  <span className="ml-2 font-normal text-amber-300">{internship.role}</span>
+                  <span className="ml-2 font-normal text-blue-300">{internship.role}</span>
                 </h3>
-                <p className="mono text-[9px] text-neutral-500">{internship.detail}</p>
+                <p className="mono text-[9px] text-neutral-500 sm:shrink-0 sm:whitespace-nowrap">
+                  {internship.detail}
+                </p>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-neutral-400">{internship.subtitle}</p>
             </div>
 
             <p className="mono mt-8 text-[10px] text-neutral-600">02 / Toolkit</p>
-            <div className="mt-4 space-y-4">
+            <div className="mt-1 divide-y divide-white/[0.06]">
               {stack.map((group) => (
-                <div key={group.category} className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+                <div key={group.category} className="flex flex-col gap-2 py-3.5 sm:flex-row sm:gap-4">
                   <p className="mono w-28 shrink-0 pt-1 text-[10px] text-neutral-500">
                     {group.category}
                   </p>
@@ -810,7 +845,7 @@ function Log() {
                     {group.items.map((item) => (
                       <span
                         key={item}
-                        className="rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-300 transition-colors hover:border-rose-400/50 hover:text-rose-200"
+                        className="rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-300 transition-colors hover:border-violet-400/50 hover:text-violet-200"
                       >
                         {item}
                       </span>
@@ -832,7 +867,7 @@ function Log() {
                 >
                   <div className="flex items-baseline justify-between gap-3">
                     <h3 className="font-display text-3xl text-neutral-50">{item.title}</h3>
-                    <p className="mono text-[9px] text-neutral-500">{item.place}</p>
+                    <p className="mono shrink-0 text-[9px] text-neutral-500">{item.place}</p>
                   </div>
                   <p className="mt-2 text-sm text-neutral-300">{item.school}</p>
                   <p className="mt-1 text-xs text-neutral-500">{item.detail}</p>
@@ -880,7 +915,7 @@ function Contact() {
               className="block"
               style={{
                 background:
-                  "linear-gradient(90deg, var(--violet), var(--rose) 50%, var(--gold))",
+                  "linear-gradient(90deg, var(--blue), var(--violet) 50%, var(--purple))",
                 WebkitBackgroundClip: "text",
                 backgroundClip: "text",
                 color: "transparent",
@@ -909,7 +944,7 @@ function Contact() {
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="Who is transmitting?"
-              className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-sm text-neutral-100 outline-none placeholder:text-neutral-600 focus:border-amber-300/60"
+              className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-sm text-neutral-100 outline-none placeholder:text-neutral-600 focus:border-blue-400/60"
             />
             <p className="mono mt-5 text-[10px] text-neutral-400">Preferred channel</p>
             <div className="mt-2 flex gap-5">
@@ -919,7 +954,7 @@ function Contact() {
                     type="checkbox"
                     checked={methods.includes(method)}
                     onChange={() => toggleMethod(method)}
-                    className="h-4 w-4 accent-amber-400"
+                    className="h-4 w-4 accent-indigo-400"
                   />
                   {method}
                 </label>
@@ -935,11 +970,11 @@ function Contact() {
               required
               rows={4}
               placeholder="What's the signal?"
-              className="mt-2 w-full resize-none rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-sm text-neutral-100 outline-none placeholder:text-neutral-600 focus:border-amber-300/60"
+              className="mt-2 w-full resize-none rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-sm text-neutral-100 outline-none placeholder:text-neutral-600 focus:border-blue-400/60"
             />
             <button
               type="submit"
-              className="mono mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-amber-400 py-3 text-[11px] font-semibold text-neutral-950 transition-colors hover:bg-amber-300"
+              className="mono mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-500 py-3 text-[11px] font-semibold text-white transition-colors hover:bg-blue-400"
             >
               Transmit <span aria-hidden>↗</span>
             </button>
@@ -950,7 +985,7 @@ function Contact() {
             <a
               href={`mailto:${email}`}
               aria-label="Email Sam"
-              className="group relative flex h-40 w-40 items-center justify-center rounded-full border border-white/10 transition-colors hover:border-amber-300/50"
+              className="group relative flex h-40 w-40 items-center justify-center rounded-full border border-white/10 transition-colors hover:border-violet-400/50"
             >
               <span className="absolute inset-3 rounded-full border border-dashed border-white/10 transition-transform duration-700 group-hover:rotate-180" />
               <span className="mono text-center text-[10px] leading-4 text-neutral-300">
@@ -960,10 +995,10 @@ function Contact() {
               </span>
             </a>
             <div className="mono flex flex-col items-center gap-2 text-[10px] text-neutral-500">
-              <a href={github} target="_blank" rel="noopener noreferrer" className="hover:text-amber-300">
+              <a href={github} target="_blank" rel="noopener noreferrer" className="hover:text-blue-300">
                 GitHub ↗
               </a>
-              <a href={linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-amber-300">
+              <a href={linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-blue-300">
                 LinkedIn ↗
               </a>
             </div>
@@ -982,17 +1017,17 @@ function Footer() {
           © {new Date().getFullYear()} Sam Gabriel · End of transmission
         </p>
         <div className="flex items-center gap-5 text-neutral-500">
-          <a href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="transition-colors hover:text-amber-300">
+          <a href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="transition-colors hover:text-blue-300">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
               <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0z" />
             </svg>
           </a>
-          <a href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="transition-colors hover:text-amber-300">
+          <a href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="transition-colors hover:text-blue-300">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
               <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.75.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12 0 1.53-.01 2.76-.01 3.14 0 .3.2.66.8.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" />
             </svg>
           </a>
-          <a href={`mailto:${email}`} className="mono text-[10px] hover:text-amber-300">
+          <a href={`mailto:${email}`} className="mono text-[10px] hover:text-blue-300">
             {email}
           </a>
         </div>
