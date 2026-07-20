@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 /* ------------------------------------------------------------------ */
 
 const navItems = [
-  { id: "about", label: "Index" },
+  { id: "about", label: "Home" },
   { id: "work", label: "Work" },
   { id: "log", label: "Log" },
   { id: "contact", label: "Contact" },
