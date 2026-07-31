@@ -72,35 +72,37 @@ const projects: Project[] = [
   },
   {
     code: "TX-04",
-    tag: "OpenGL",
-    title: "Distant LOD",
+    tag: "Deep Learning",
+    title: "PapVision",
     subtitle:
-      "Far-terrain renderer for Minecraft — real distant terrain beyond the vanilla horizon.",
-    detail: "Java · Fabric · OpenGL / GLSL",
-    source: "https://github.com/SamGabriel-Here/MACLOD",
-    thumb: "/maclod.jpg",
+      "Cervical-cytology image classifier — MobileNetV3 fine-tuned across four Pap-smear classes, gated so low-confidence slides abstain instead of guessing. A research and learning project, not a diagnostic tool.",
+    detail: "PyTorch · MobileNetV3 · Flask",
+    source: "https://github.com/SamGabriel-Here/pap-vision",
+    thumb: "/papvision.jpg",
     accent: "139,92,246",
   },
   {
     code: "TX-05",
     tag: "Machine Learning",
-    title: "Internship Allocator",
+    title: "Nextern",
     subtitle:
-      "ML-powered portal that recommends internship companies from student profiles.",
-    detail: "Python · scikit-learn · Flask",
+      "Explainable internship recommender — matches students to companies by skill, coaches the gaps it finds, and reads a resume with an AI copilot.",
+    detail: "Python · scikit-learn · Flask · Gemini",
+    live: "https://getnextern.onrender.com",
     source: "https://github.com/SamGabriel-Here/Internship-Allocator",
     thumb: "/nextern.jpg",
     accent: "168,85,247",
   },
   {
     code: "TX-06",
-    tag: "NLP",
-    title: "Repo Analyzer",
+    tag: "Developer Tools",
+    title: "GitRep",
     subtitle:
-      "Full-stack app that scores README quality with NLP and suggests improvements.",
-    detail: "React · FastAPI · Python · NLP",
-    source: "https://github.com/SamGabriel-Here/Github-Repo-Analyzer",
-    thumb: "/repoanalyzer.jpg",
+      "Scores any public GitHub repo's README and hands back honest, actionable feedback.",
+    detail: "React · Vite · FastAPI · GitHub API",
+    live: "https://git-rep.onrender.com",
+    source: "https://github.com/SamGabriel-Here/GitRep",
+    thumb: "/gitrep.jpg",
     accent: "192,132,252",
   },
 ];
@@ -120,7 +122,7 @@ const internship = {
 };
 
 const stack = [
-  { category: "ML & Data", items: ["Python", "Pandas", "scikit-learn", "XGBoost", "Streamlit"] },
+  { category: "ML & Data", items: ["Python", "PyTorch", "Pandas", "scikit-learn", "XGBoost", "Streamlit"] },
   { category: "Frontend", items: ["React", "Next.js", "Tailwind", "Flutter", "JavaScript"] },
   { category: "Backend", items: ["FastAPI", "Flask", "WordPress"] },
   { category: "Languages", items: ["C", "C++", "CUDA C++", "Java", "SQL", "Dart"] },
