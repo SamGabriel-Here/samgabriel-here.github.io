@@ -142,6 +142,201 @@ const email = "samgabrielofficial@gmail.com";
 const github = "https://github.com/SamGabriel-Here";
 const linkedin = "https://www.linkedin.com/in/samgabrielofficially/";
 
+/* ------------------------------------------------------------------ */
+/*  Starfield — crisp parallax depth, slow drift, rare shooting stars  */
+/* ------------------------------------------------------------------ */
+
+type Star = {
+  x: number;
+  y: number;
+  depth: number; // 0 = far, 1 = near
+  size: number;
+  base: number; // base brightness
+  tw: number; // twinkle speed
+  ph: number; // twinkle phase
+  tint: string;
+};
+
+type Streak = {
+  x: number;
+  y: number;
+  len: number;
+  vx: number;
+  vy: number;
+  life: number;
+  max: number;
+};
+
+// pale white, pale blue, pale violet — nothing warm
+const STAR_TINTS = ["255,255,255", "191,219,254", "216,180,254"];
+
+function makeStarfield(count: number): Star[] {
+  let seed = 1987;
+  const rand = () => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+  return Array.from({ length: count }, () => {
+    const depth = rand();
+    return {
+      x: rand(),
+      y: rand(),
+      depth,
+      size: depth > 0.88 ? 2 : 1,
+      base: 0.28 + depth * 0.6,
+      tw: 0.0006 + rand() * 0.0016,
+      ph: rand() * Math.PI * 2,
+      tint: STAR_TINTS[Math.floor(rand() * 3) % 3],
+    };
+  });
+}
+
+function Starfield() {
+  const ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let raf = 0;
+    let w = 0;
+    let h = 0;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+    const resize = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const stars = makeStarfield(240);
+    const streaks: Streak[] = [];
+    let nextStreak = 4000 + Math.random() * 9000;
+
+    const draw = (t: number, dt: number) => {
+      ctx.clearRect(0, 0, w, h);
+      const scroll = window.scrollY;
+
+      for (const s of stars) {
+        // deeper stars drift and parallax faster — that reads as distance
+        const drift = t * 0.0000018 * (0.25 + s.depth);
+        const x = (((s.x + drift) % 1) + 1) % 1;
+        const py = s.y - (scroll * (0.02 + s.depth * 0.07)) / h;
+        const y = ((py % 1) + 1) % 1;
+
+        const alpha = s.base * (0.55 + 0.45 * Math.sin(t * s.tw + s.ph));
+        ctx.fillStyle = `rgba(${s.tint},${alpha.toFixed(3)})`;
+        ctx.fillRect(Math.round(x * w), Math.round(y * h), s.size, s.size);
+
+        // the nearest few get a faint halo so they read as bright, not just big
+        if (s.depth > 0.955) {
+          ctx.fillStyle = `rgba(${s.tint},${(alpha * 0.16).toFixed(3)})`;
+          ctx.fillRect(Math.round(x * w) - 1, Math.round(y * h) - 1, s.size + 2, s.size + 2);
+        }
+      }
+
+      // shooting stars, occasional and quick
+      nextStreak -= dt;
+      if (nextStreak <= 0) {
+        nextStreak = 7000 + Math.random() * 16000;
+        const sx = Math.random() * w * 0.7;
+        const sy = Math.random() * h * 0.5;
+        const sp = 0.42 + Math.random() * 0.3;
+        streaks.push({
+          x: sx,
+          y: sy,
+          len: 90 + Math.random() * 130,
+          vx: sp,
+          vy: sp * (0.32 + Math.random() * 0.3),
+          life: 0,
+          max: 950,
+        });
+      }
+
+      for (let i = streaks.length - 1; i >= 0; i--) {
+        const st = streaks[i];
+        st.life += dt;
+        if (st.life > st.max) {
+          streaks.splice(i, 1);
+          continue;
+        }
+        st.x += st.vx * dt;
+        st.y += st.vy * dt;
+        const p = st.life / st.max;
+        const fade = Math.sin(p * Math.PI); // ease in and out
+        const tailX = st.x - st.vx * st.len;
+        const tailY = st.y - st.vy * st.len;
+        const grad = ctx.createLinearGradient(st.x, st.y, tailX, tailY);
+        grad.addColorStop(0, `rgba(226,232,240,${(0.5 * fade).toFixed(3)})`);
+        grad.addColorStop(1, "rgba(226,232,240,0)");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(st.x, st.y);
+        ctx.lineTo(tailX, tailY);
+        ctx.stroke();
+      }
+    };
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduced) {
+      draw(0, 0);
+    } else {
+      const frameGap = 1000 / 30;
+      let last = 0;
+      let prev = 0;
+
+      const loop = (t: number) => {
+        raf = requestAnimationFrame(loop);
+        if (t - last < frameGap) return;
+        const dt = prev ? Math.min(t - prev, 100) : frameGap;
+        last = t;
+        prev = t;
+        draw(t, dt);
+      };
+
+      const onVisibility = () => {
+        if (document.hidden) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        } else if (!raf) {
+          last = 0;
+          prev = 0;
+          raf = requestAnimationFrame(loop);
+        }
+      };
+      document.addEventListener("visibilitychange", onVisibility);
+      raf = requestAnimationFrame(loop);
+
+      return () => {
+        cancelAnimationFrame(raf);
+        window.removeEventListener("resize", resize);
+        document.removeEventListener("visibilitychange", onVisibility);
+      };
+    }
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={ref}
+      aria-hidden
+      className="pointer-events-none fixed inset-0 -z-10 opacity-90"
+    />
+  );
+}
+
 // Original generated cosmos loop (blue→violet spectrum), drifting beneath everything.
 // The film only plays while the visitor interacts — the cosmos moves when you do.
 function BackgroundLoop() {
@@ -849,6 +1044,7 @@ export default function Home() {
   return (
     <div className="relative pb-10">
       <BackgroundLoop />
+      <Starfield />
       <div className="fx-vignette" />
       <div className="fx-grain" />
       <TopBar />
