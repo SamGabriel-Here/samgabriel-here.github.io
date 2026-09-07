@@ -15,10 +15,10 @@ const navItems = [
 
 const roles = [
   "ML Developer",
-  "Python Developer",
-  "AI Enthusiast",
   "GPU Simulation",
-  "Roblox Game Dev",
+  "Full-Stack Developer",
+  "Desktop Apps",
+  "AI Enthusiast",
   "Always Learning",
 ];
 
@@ -49,6 +49,29 @@ const projects: Project[] = [
   },
   {
     code: "TX-02",
+    tag: "Desktop App",
+    title: "NovaSky",
+    subtitle:
+      "A desktop planetarium that draws the real sky above you — 8,900+ naked-eye stars, every constellation, the planets, deep-sky objects, even black holes, plus a time machine that runs the sky forward. Works fully offline.",
+    detail: "TypeScript · Desktop · Astronomy",
+    source: "https://github.com/SamGabriel-Here/NovaSky",
+    thumb: "/novasky.jpg",
+    accent: "34,211,238",
+  },
+  {
+    code: "TX-03",
+    tag: "Web App",
+    title: "Celestial",
+    subtitle:
+      "A compact weather dashboard — current conditions, hourly outlook, five-day forecast, daylight and air quality. Vanilla ES modules, no framework, behind a secure serverless API proxy.",
+    detail: "JavaScript · Vercel · OpenWeather",
+    live: "https://celestial-tan.vercel.app",
+    source: "https://github.com/SamGabriel-Here/celestial",
+    thumb: "/celestial.jpg",
+    accent: "56,189,248",
+  },
+  {
+    code: "TX-04",
     tag: "Machine Learning",
     title: "NestWorth",
     subtitle: "House-price prediction across five Indian metros.",
@@ -59,19 +82,7 @@ const projects: Project[] = [
     accent: "59,130,246",
   },
   {
-    code: "TX-03",
-    tag: "Flutter",
-    title: "ShowRush",
-    subtitle:
-      "Movie-ticket booking app with interactive seat selection and checkout.",
-    detail: "Flutter · Dart · Material 3",
-    live: "https://samgabriel-here.github.io/movie-booking-app/",
-    source: "https://github.com/SamGabriel-Here/movie-booking-app",
-    thumb: "/showrush.jpg",
-    accent: "99,102,241",
-  },
-  {
-    code: "TX-04",
+    code: "TX-05",
     tag: "Deep Learning",
     title: "PapVision",
     subtitle:
@@ -82,7 +93,7 @@ const projects: Project[] = [
     accent: "139,92,246",
   },
   {
-    code: "TX-05",
+    code: "TX-06",
     tag: "Machine Learning",
     title: "Nextern",
     subtitle:
@@ -94,7 +105,7 @@ const projects: Project[] = [
     accent: "168,85,247",
   },
   {
-    code: "TX-06",
+    code: "TX-07",
     tag: "Developer Tools",
     title: "GitRep",
     subtitle:
@@ -105,11 +116,23 @@ const projects: Project[] = [
     thumb: "/gitrep.jpg",
     accent: "192,132,252",
   },
+  {
+    code: "TX-08",
+    tag: "Flutter",
+    title: "ShowRush",
+    subtitle:
+      "Movie-ticket booking app with interactive seat selection and checkout.",
+    detail: "Flutter · Dart · Material 3",
+    live: "https://samgabriel-here.github.io/movie-booking-app/",
+    source: "https://github.com/SamGabriel-Here/movie-booking-app",
+    thumb: "/showrush.jpg",
+    accent: "99,102,241",
+  },
 ];
 
 const stats = [
-  { target: 6, suffix: "", pad: 2, label: "Projects Shipped", color: "var(--blue)" },
-  { target: 8, suffix: "", pad: 2, label: "Languages Spoken", color: "var(--violet)" },
+  { target: 8, suffix: "", pad: 2, label: "Projects Shipped", color: "var(--blue)" },
+  { target: 9, suffix: "", pad: 2, label: "Languages Spoken", color: "var(--violet)" },
   { target: 176, suffix: "×", pad: 0, label: "Peak GPU Speedup", color: "var(--purple)" },
 ];
 
@@ -125,7 +148,7 @@ const stack = [
   { category: "ML & Data", items: ["Python", "PyTorch", "Pandas", "scikit-learn", "XGBoost", "Streamlit"] },
   { category: "Frontend", items: ["React", "Next.js", "Tailwind", "Flutter", "JavaScript"] },
   { category: "Backend", items: ["FastAPI", "Flask", "WordPress"] },
-  { category: "Languages", items: ["C", "C++", "CUDA C++", "Java", "SQL", "Dart"] },
+  { category: "Languages", items: ["C", "C++", "CUDA C++", "TypeScript", "Java", "SQL", "Dart"] },
   { category: "Data", items: ["MongoDB", "MySQL"] },
   { category: "Tools", items: ["Git", "GitHub", "VS Code", "Prompt Engineering"] },
 ];
@@ -143,17 +166,135 @@ const github = "https://github.com/SamGabriel-Here";
 const linkedin = "https://www.linkedin.com/in/samgabrielofficially/";
 
 /* ------------------------------------------------------------------ */
+/*  Motion helpers — all pointer-driven motion is gated to fine        */
+/*  pointers with motion allowed, so touch + reduced-motion opt out.   */
+/* ------------------------------------------------------------------ */
+
+function canHover() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(pointer: fine)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+// Buttons that lean toward the cursor while hovered.
+function useMagnetic<T extends HTMLElement>(strength = 0.3) {
+  const ref = useRef<T>(null);
+  const on = useRef(false);
+  useEffect(() => {
+    on.current = canHover();
+  }, []);
+  const onMouseMove = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!on.current || !el) return;
+    const r = el.getBoundingClientRect();
+    el.style.transform = `translate(${(e.clientX - (r.left + r.width / 2)) * strength}px, ${(e.clientY - (r.top + r.height / 2)) * strength}px)`;
+  };
+  const onMouseLeave = () => {
+    if (ref.current) ref.current.style.transform = "translate(0px, 0px)";
+  };
+  return { ref, onMouseMove, onMouseLeave };
+}
+
+// Thin gradient bar that tracks reading progress.
+function ScrollProgress() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const d = document.documentElement;
+        const max = d.scrollHeight - d.clientHeight;
+        const p = max > 0 ? d.scrollTop / max : 0;
+        if (ref.current) ref.current.style.transform = `scaleX(${p.toFixed(4)})`;
+      });
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+  return (
+    <div
+      aria-hidden
+      ref={ref}
+      className="fixed inset-x-0 top-0 z-50 h-[2px] origin-left"
+      style={{
+        transform: "scaleX(0)",
+        background: "linear-gradient(90deg, var(--blue), var(--violet) 55%, var(--purple))",
+        boxShadow: "0 0 12px rgba(99,102,241,0.6)",
+      }}
+    />
+  );
+}
+
+// Soft glow that trails the cursor — ambient depth, not a cursor replacement.
+function CursorGlow() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!canHover()) return;
+    const el = ref.current;
+    if (!el) return;
+    let tx = window.innerWidth / 2;
+    let ty = window.innerHeight / 2;
+    let x = tx;
+    let y = ty;
+    let shown = false;
+    let raf = 0;
+    const move = (e: PointerEvent) => {
+      tx = e.clientX;
+      ty = e.clientY;
+      if (!shown) {
+        shown = true;
+        el.style.opacity = "1";
+      }
+    };
+    const loop = () => {
+      x += (tx - x) * 0.12;
+      y += (ty - y) * 0.12;
+      el.style.transform = `translate3d(${(x - 170).toFixed(1)}px, ${(y - 170).toFixed(1)}px, 0)`;
+      raf = requestAnimationFrame(loop);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    raf = requestAnimationFrame(loop);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+  return (
+    <div
+      aria-hidden
+      ref={ref}
+      className="pointer-events-none fixed left-0 top-0 z-20 h-[340px] w-[340px] rounded-full opacity-0"
+      style={{
+        background:
+          "radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(59,130,246,0.06) 35%, transparent 62%)",
+        mixBlendMode: "screen",
+        transition: "opacity 0.6s ease",
+      }}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Starfield — crisp parallax depth, slow drift, rare shooting stars  */
 /* ------------------------------------------------------------------ */
 
 type Star = {
   x: number;
   y: number;
-  depth: number; // 0 = far, 1 = near
+  depth: number;
   size: number;
-  base: number; // base brightness
-  tw: number; // twinkle speed
-  ph: number; // twinkle phase
+  base: number;
+  tw: number;
+  ph: number;
   tint: string;
 };
 
@@ -167,7 +308,6 @@ type Streak = {
   max: number;
 };
 
-// pale white, pale blue, pale violet — nothing warm
 const STAR_TINTS = ["255,255,255", "191,219,254", "216,180,254"];
 
 function makeStarfield(count: number): Star[] {
@@ -205,6 +345,18 @@ function Starfield() {
     let h = 0;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
+    // pointer influence — the field leans a touch toward the cursor
+    let pTargetX = 0;
+    let pTargetY = 0;
+    let pX = 0;
+    let pY = 0;
+    const hover = canHover();
+    const onPointer = (e: PointerEvent) => {
+      pTargetX = (e.clientX / window.innerWidth - 0.5) * 2;
+      pTargetY = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    if (hover) window.addEventListener("pointermove", onPointer, { passive: true });
+
     const resize = () => {
       w = window.innerWidth;
       h = window.innerHeight;
@@ -222,26 +374,26 @@ function Starfield() {
     const draw = (t: number, dt: number) => {
       ctx.clearRect(0, 0, w, h);
       const scroll = window.scrollY;
+      pX += (pTargetX - pX) * 0.05;
+      pY += (pTargetY - pY) * 0.05;
 
       for (const s of stars) {
-        // deeper stars drift and parallax faster — that reads as distance
         const drift = t * 0.0000018 * (0.25 + s.depth);
-        const x = (((s.x + drift) % 1) + 1) % 1;
-        const py = s.y - (scroll * (0.02 + s.depth * 0.07)) / h;
+        const px = s.x + drift - (pX * (0.006 + s.depth * 0.02));
+        const x = ((px % 1) + 1) % 1;
+        const py = s.y - (scroll * (0.02 + s.depth * 0.07)) / h - (pY * (0.004 + s.depth * 0.014));
         const y = ((py % 1) + 1) % 1;
 
         const alpha = s.base * (0.55 + 0.45 * Math.sin(t * s.tw + s.ph));
         ctx.fillStyle = `rgba(${s.tint},${alpha.toFixed(3)})`;
         ctx.fillRect(Math.round(x * w), Math.round(y * h), s.size, s.size);
 
-        // the nearest few get a faint halo so they read as bright, not just big
         if (s.depth > 0.955) {
           ctx.fillStyle = `rgba(${s.tint},${(alpha * 0.16).toFixed(3)})`;
           ctx.fillRect(Math.round(x * w) - 1, Math.round(y * h) - 1, s.size + 2, s.size + 2);
         }
       }
 
-      // shooting stars, occasional and quick
       nextStreak -= dt;
       if (nextStreak <= 0) {
         nextStreak = 7000 + Math.random() * 16000;
@@ -269,7 +421,7 @@ function Starfield() {
         st.x += st.vx * dt;
         st.y += st.vy * dt;
         const p = st.life / st.max;
-        const fade = Math.sin(p * Math.PI); // ease in and out
+        const fade = Math.sin(p * Math.PI);
         const tailX = st.x - st.vx * st.len;
         const tailY = st.y - st.vy * st.len;
         const grad = ctx.createLinearGradient(st.x, st.y, tailX, tailY);
@@ -318,6 +470,7 @@ function Starfield() {
       return () => {
         cancelAnimationFrame(raf);
         window.removeEventListener("resize", resize);
+        window.removeEventListener("pointermove", onPointer);
         document.removeEventListener("visibilitychange", onVisibility);
       };
     }
@@ -325,6 +478,7 @@ function Starfield() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointer);
     };
   }, []);
 
@@ -337,7 +491,7 @@ function Starfield() {
   );
 }
 
-// Original generated cosmos loop (blue→violet spectrum), drifting beneath everything.
+// Original generated cosmos loop, drifting beneath everything.
 // The film only plays while the visitor interacts — the cosmos moves when you do.
 function BackgroundLoop() {
   const vref = useRef<HTMLVideoElement>(null);
@@ -471,6 +625,7 @@ function Counter({ target, suffix, pad }: { target: number; suffix: string; pad:
 
 function TopBar() {
   const [active, setActive] = useState("about");
+  const transmit = useMagnetic<HTMLAnchorElement>(0.45);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -491,8 +646,8 @@ function TopBar() {
   return (
     <header className="fixed inset-x-0 top-0 z-40">
       <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#03040790] px-5 py-3 backdrop-blur-md sm:px-8">
-        <a href="#about" className="flex items-center gap-2.5 group">
-          <span className="text-blue-400 transition-transform group-hover:rotate-90">✳</span>
+        <a href="#about" className="group flex items-center gap-2.5">
+          <span className="text-blue-400 transition-transform duration-500 group-hover:rotate-180">✳</span>
           <span className="mono text-[11px] text-neutral-200 sm:text-xs">Sam Gabriel</span>
         </a>
         <nav className="hidden items-center gap-1 md:flex">
@@ -510,7 +665,11 @@ function TopBar() {
         </nav>
         <a
           href="#contact"
-          className="mono flex items-center gap-1.5 text-[10px] text-neutral-300 transition-colors hover:text-blue-300 sm:text-xs"
+          ref={transmit.ref}
+          onMouseMove={transmit.onMouseMove}
+          onMouseLeave={transmit.onMouseLeave}
+          className="mono flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-1.5 text-[10px] text-neutral-300 transition-colors hover:border-blue-400/50 hover:text-blue-300 sm:text-xs"
+          style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), color 0.2s, border-color 0.2s" }}
         >
           Transmit <span aria-hidden>↗</span>
         </a>
@@ -519,7 +678,6 @@ function TopBar() {
   );
 }
 
-// Film-style letterbox caption bar (à la "UNIVERSE AGE: … | EARLY STAR FORMATION | …")
 const chapters = [
   { id: "about", label: "Prologue — The Observable Sam" },
   { id: "work", label: "Chapter 01 — Selected Works" },
@@ -571,12 +729,38 @@ function CaptionBar() {
 /* ------------------------------------------------------------------ */
 
 function Hero() {
+  const secRef = useRef<HTMLElement>(null);
+  const on = useRef(false);
+  useEffect(() => {
+    on.current = canHover();
+  }, []);
+
+  const onMove = (e: React.PointerEvent) => {
+    const el = secRef.current;
+    if (!on.current || !el) return;
+    const r = el.getBoundingClientRect();
+    const mx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+    const my = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+    el.style.setProperty("--mx", mx.toFixed(3));
+    el.style.setProperty("--my", my.toFixed(3));
+  };
+  const onLeave = () => {
+    const el = secRef.current;
+    if (el) {
+      el.style.setProperty("--mx", "0");
+      el.style.setProperty("--my", "0");
+    }
+  };
+
   return (
     <section
       id="about"
+      ref={secRef}
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
       className="relative flex min-h-screen flex-col justify-center overflow-hidden px-5 pb-28 pt-28 sm:px-10"
     >
-      {/* electric first-light bloom rising behind the name */}
+      {/* electric first-light bloom rising behind the name — leans toward the cursor */}
       <div
         aria-hidden
         className="pointer-events-none absolute left-[-10%] top-[30%] -z-[1] h-[70vmin] w-[90vmin] opacity-70"
@@ -584,6 +768,9 @@ function Hero() {
           background:
             "radial-gradient(50% 50% at 50% 50%, rgba(59,130,246,0.3) 0%, rgba(99,102,241,0.15) 40%, rgba(168,85,247,0.06) 65%, transparent 78%)",
           filter: "blur(14px)",
+          transform: "translate3d(calc(var(--mx,0) * 30px), calc(var(--my,0) * 30px), 0)",
+          transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
+          willChange: "transform",
         }}
       />
 
@@ -592,7 +779,14 @@ function Hero() {
           <Kicker>ML · Software · Generative</Kicker>
         </div>
 
-        <h1 className="reveal in font-display text-[19vw] leading-[0.85] text-neutral-50 sm:text-[15vw] lg:text-[13rem]">
+        <h1
+          className="reveal in font-display text-[19vw] leading-[0.85] text-neutral-50 sm:text-[15vw] lg:text-[13rem]"
+          style={{
+            transform: "translate3d(calc(var(--mx,0) * -12px), calc(var(--my,0) * -8px), 0)",
+            transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
+            willChange: "transform",
+          }}
+        >
           <span className="block">Sam</span>
           <span className="block text-hollow">Gabriel</span>
         </h1>
@@ -626,22 +820,62 @@ function Hero() {
 
 function ProjectCard({ p, featured }: { p: Project; featured?: boolean }) {
   const primaryHref = p.live || p.source;
+  const ref = useRef<HTMLAnchorElement>(null);
+  const glare = useRef<HTMLDivElement>(null);
+  const on = useRef(false);
+
+  useEffect(() => {
+    on.current = canHover();
+  }, []);
+
+  const enter = () => {
+    if (!on.current || !ref.current) return;
+    ref.current.style.transition = "box-shadow 0.4s, border-color 0.4s";
+    ref.current.style.boxShadow = `0 28px 70px -28px rgba(${p.accent},0.55)`;
+  };
+  const move = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!on.current || !el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    el.style.transform = `perspective(1100px) rotateX(${((0.5 - py) * 7).toFixed(2)}deg) rotateY(${((px - 0.5) * 9).toFixed(2)}deg) translateY(-6px)`;
+    if (glare.current) {
+      glare.current.style.opacity = "1";
+      glare.current.style.background = `radial-gradient(340px circle at ${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%, rgba(${p.accent},0.20), transparent 60%)`;
+    }
+  };
+  const leave = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transition = "transform 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s, border-color 0.4s";
+    el.style.transform = "";
+    el.style.boxShadow = "0 0 0 rgba(0,0,0,0)";
+    if (glare.current) glare.current.style.opacity = "0";
+  };
+
   return (
     <a
       href={primaryHref}
       target="_blank"
       rel="noopener noreferrer"
-      className={`reveal group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-950/40 transition-all duration-500 hover:border-white/20 hover:-translate-y-1 ${
+      ref={ref}
+      onMouseEnter={enter}
+      onMouseMove={move}
+      onMouseLeave={leave}
+      className={`reveal group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-950/40 hover:border-white/20 ${
         featured ? "sm:col-span-2 sm:flex-row" : ""
       }`}
-      style={{ boxShadow: "0 0 0 rgba(0,0,0,0)" }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = `0 24px 60px -24px rgba(${p.accent},0.5)`;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = "0 0 0 rgba(0,0,0,0)";
-      }}
+      style={{ transformStyle: "preserve-3d" }}
     >
+      {/* cursor-tracked glare */}
+      <div
+        ref={glare}
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[2] opacity-0"
+        style={{ transition: "opacity 0.3s ease" }}
+      />
+
       {/* media */}
       <div
         className={`relative overflow-hidden ${
@@ -686,7 +920,7 @@ function ProjectCard({ p, featured }: { p: Project; featured?: boolean }) {
       </div>
 
       {/* body */}
-      <div className={`flex flex-1 flex-col p-5 ${featured ? "sm:justify-center sm:p-8" : ""}`}>
+      <div className={`relative z-[3] flex flex-1 flex-col p-5 ${featured ? "sm:justify-center sm:p-8" : ""}`}>
         <h3
           className={`font-display text-neutral-50 ${featured ? "text-4xl sm:text-6xl" : "text-2xl"}`}
         >
@@ -716,6 +950,7 @@ function ProjectCard({ p, featured }: { p: Project; featured?: boolean }) {
 }
 
 function Work() {
+  const repos = useMagnetic<HTMLAnchorElement>(0.4);
   return (
     <section id="work" className="relative scroll-mt-16 px-5 py-24 sm:px-10 sm:py-32">
       <div className="mx-auto w-full max-w-6xl">
@@ -733,7 +968,11 @@ function Work() {
             href={github}
             target="_blank"
             rel="noopener noreferrer"
-            className="mono rounded-full border border-white/15 px-6 py-3 text-[11px] text-neutral-300 transition-colors hover:border-blue-400/50 hover:text-blue-300"
+            ref={repos.ref}
+            onMouseMove={repos.onMouseMove}
+            onMouseLeave={repos.onMouseLeave}
+            className="mono rounded-full border border-white/15 px-6 py-3 text-[11px] text-neutral-300 hover:border-blue-400/50 hover:text-blue-300"
+            style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), color 0.2s, border-color 0.2s" }}
           >
             All repositories on GitHub ↗
           </a>
@@ -747,7 +986,7 @@ function TechBand() {
   return (
     <section aria-label="Tech stack" className="relative overflow-hidden border-y border-white/[0.06] py-6">
       <div className="[mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="flex w-max animate-[marquee_40s_linear_infinite]">
+        <div className="marquee-hover flex w-max animate-[marquee_40s_linear_infinite]">
           {[...marqueeTech, ...marqueeTech].map((t, i) => (
             <span key={i} className="mx-5 flex items-center gap-5 whitespace-nowrap">
               <span className="font-display text-2xl text-neutral-400 transition-colors hover:text-neutral-100 sm:text-3xl">
@@ -867,6 +1106,8 @@ function Contact() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [methods, setMethods] = useState<string[]>([]);
+  const send = useMagnetic<HTMLButtonElement>(0.25);
+  const circle = useMagnetic<HTMLAnchorElement>(0.4);
 
   const toggleMethod = (method: string) => {
     setMethods((prev) =>
@@ -956,7 +1197,11 @@ function Contact() {
             />
             <button
               type="submit"
-              className="mono mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-500 py-3 text-[11px] font-semibold text-white transition-colors hover:bg-blue-400"
+              ref={send.ref}
+              onMouseMove={send.onMouseMove}
+              onMouseLeave={send.onMouseLeave}
+              className="mono mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-500 py-3 text-[11px] font-semibold text-white hover:bg-blue-400"
+              style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s" }}
             >
               Transmit <span aria-hidden>↗</span>
             </button>
@@ -967,7 +1212,11 @@ function Contact() {
             <a
               href={`mailto:${email}`}
               aria-label="Email Sam"
+              ref={circle.ref}
+              onMouseMove={circle.onMouseMove}
+              onMouseLeave={circle.onMouseLeave}
               className="group relative flex h-40 w-40 items-center justify-center rounded-full border border-white/10 transition-colors hover:border-violet-400/50"
+              style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), border-color 0.2s" }}
             >
               <span className="absolute inset-3 rounded-full border border-dashed border-white/10 transition-transform duration-700 group-hover:rotate-180" />
               <span className="mono text-center text-[10px] leading-4 text-neutral-300">
@@ -1023,7 +1272,6 @@ function Footer() {
 /* ------------------------------------------------------------------ */
 
 export default function Home() {
-  // reveal-on-scroll
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>(".reveal:not(.in)"));
     const io = new IntersectionObserver(
@@ -1045,6 +1293,8 @@ export default function Home() {
     <div className="relative pb-10">
       <BackgroundLoop />
       <Starfield />
+      <CursorGlow />
+      <ScrollProgress />
       <div className="fx-vignette" />
       <div className="fx-grain" />
       <TopBar />

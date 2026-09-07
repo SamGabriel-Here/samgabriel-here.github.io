@@ -160,6 +160,11 @@ body {
   animation: blink 1.6s steps(1) infinite;
 }
 
+/* Pause the tech ticker while the pointer rests on it */
+.marquee-hover:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1 !important;
