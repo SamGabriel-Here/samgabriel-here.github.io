@@ -273,6 +273,15 @@ body {
 .nav-shell[data-hidden="true"] {
   transform: translate3d(0, -100%, 0);
 }
+/* the bar may retreat; the conversion route may not. The wrapper counter-moves
+   by the bar's own height so the CTA stays put, and the magnetic transform on
+   the anchor inside is left untouched. */
+.cta-persist {
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-shell[data-hidden="true"] .cta-persist {
+  transform: translate3d(0, 3.5rem, 0);
+}
 
 /* The catalogue as a horizontal journey. The pin is position: sticky and the
    travel is one transform, so no library and no layout work per frame. */
@@ -282,7 +291,13 @@ body {
   height: 100svh;
   display: flex;
   align-items: center;
+  /* `hidden` is still programmatically scrollable: focusing an off-screen card
+     makes the browser scroll this box, which the transform knows nothing about,
+     and the track desyncs with no scrollbar to recover from. `clip` cannot be
+     scrolled. Older engines fall back to hidden, where the focusin handler in
+     Catalogue() still drives the travel. */
   overflow: hidden;
+  overflow: clip;
 }
 .cat-track {
   display: flex;
@@ -292,6 +307,9 @@ body {
 }
 .cat-card {
   flex: 0 0 clamp(19rem, 30vw, 30rem);
+}
+.cat-card > article {
+  height: 100%;
 }
 
 /* Below lg, on short windows, and whenever motion is unwelcome, the journey
@@ -308,7 +326,8 @@ body {
   }
   .cat-track {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: 1.25rem;
     transform: none !important;
     will-change: auto;
   }
@@ -385,6 +404,11 @@ body {
   .nav-shell[data-hidden="true"] {
     transform: none;
   }
+  .cta-persist,
+  .nav-shell[data-hidden="true"] .cta-persist {
+    transition: none;
+    transform: none;
+  }
   .cat-rail {
     height: auto !important;
   }
@@ -396,7 +420,8 @@ body {
   }
   .cat-track {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: 1.25rem;
     transform: none !important;
     will-change: auto;
   }

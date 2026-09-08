@@ -486,7 +486,7 @@ function StarChart() {
         const c = CENTROIDS[f];
         const ox = c[0] * w + ax;
         const oy = c[1] * h + ay;
-        ctx.strokeStyle = "rgba(242,239,249,0.07)";
+        ctx.strokeStyle = `rgba(${TINTS[0]},0.07)`;
         ctx.beginPath();
         for (let i = 0; i < fig.length; i++) {
           const cx = ox + (fig[i][0] - c[0]) * fs;
@@ -495,7 +495,7 @@ function StarChart() {
           else ctx.lineTo(cx, cy);
         }
         ctx.stroke();
-        ctx.fillStyle = "rgba(242,239,249,0.34)";
+        ctx.fillStyle = `rgba(${TINTS[0]},0.34)`;
         for (let i = 0; i < fig.length; i++) {
           ctx.fillRect(
             Math.round(ox + (fig[i][0] - c[0]) * fs),
@@ -553,8 +553,8 @@ function StarChart() {
         const tailY = hy - m.vy * 260 * h;
         const fade = Math.sin(Math.PI * p) * 0.75;
         const g = ctx.createLinearGradient(hx, hy, tailX, tailY);
-        g.addColorStop(0, `rgba(242,239,249,${fade.toFixed(3)})`);
-        g.addColorStop(1, "rgba(242,239,249,0)");
+        g.addColorStop(0, `rgba(${TINTS[0]},${fade.toFixed(3)})`);
+        g.addColorStop(1, `rgba(${TINTS[0]},0)`);
         ctx.strokeStyle = g;
         ctx.lineWidth = 1.4;
         ctx.beginPath();
@@ -772,8 +772,30 @@ function Clock() {
 
 function Header() {
   const [active, setActive] = useState("log");
+  const [menuOpen, setMenuOpen] = useState(false);
   const ctaRef = useMagnetic<HTMLAnchorElement>(0.4);
   const barRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  // read inside the scroll handler, which must not retreat an open menu
+  const openRef = useRef(false);
+
+  const setMenu = (next: boolean) => {
+    openRef.current = next;
+    setMenuOpen(next);
+  };
+
+  // Escape closes and hands focus back to the control that opened it
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      openRef.current = false;
+      setMenuOpen(false);
+      toggleRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   useEffect(() => {
     const el = barRef.current;
@@ -784,7 +806,7 @@ function Header() {
       raf = 0;
       const y = window.scrollY;
       if (Math.abs(y - last) < 6) return; // ignore jitter and rubber-banding
-      el.dataset.hidden = y > last && y > 140 ? "true" : "false";
+      el.dataset.hidden = !openRef.current && y > last && y > 140 ? "true" : "false";
       last = y;
     };
     const onScroll = () => {
@@ -836,14 +858,50 @@ function Header() {
             </a>
           ))}
         </nav>
-        <a
-          href="#transmit"
-          ref={ctaRef}
-          className="mono rounded-sm border border-[color:var(--amber)]/40 px-3.5 py-1.5 text-[11px] text-[color:var(--amber)] transition-colors hover:bg-[color:var(--amber)] hover:text-[color:var(--ink)]"
-          style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s, color 0.2s" }}
-        >
-          Transmit
-        </a>
+        <div className="flex items-center gap-2">
+          {/* the bar retreats on scroll; this wrapper counter-moves so the one
+              route to the conversion never leaves the screen */}
+          <span className="cta-persist">
+            <a
+              href="#transmit"
+              ref={ctaRef}
+              onClick={() => setMenu(false)}
+              className="mono block rounded-sm border border-[color:var(--amber)]/40 px-3.5 py-1.5 text-[11px] text-[color:var(--amber)] transition-colors hover:bg-[color:var(--amber)] hover:text-[color:var(--ink)]"
+              style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s, color 0.2s" }}
+            >
+              Transmit
+            </a>
+          </span>
+          <button
+            ref={toggleRef}
+            type="button"
+            aria-expanded={menuOpen}
+            aria-controls="nav-menu"
+            onClick={() => setMenu(!menuOpen)}
+            className="mono rounded-sm border border-[color:var(--line-strong)] px-3 py-1.5 text-[11px] text-[color:var(--dim)] transition-colors hover:text-[color:var(--starlight)] md:hidden"
+          >
+            {menuOpen ? "Close" : "Menu"}
+          </button>
+        </div>
+      </div>
+
+      {/* Below md this is the only way to reach a section. Only one of the two
+          navs is ever in the accessibility tree: the other is display:none. */}
+      <div id="nav-menu" hidden={!menuOpen} className="border-t border-[color:var(--line)] md:hidden">
+        <nav aria-label="Sections" className="shell flex flex-col px-5 pb-3 sm:px-8">
+          {nav.map((n) => (
+            <a
+              key={n.id}
+              href={`#${n.id}`}
+              aria-current={active === n.id ? "true" : undefined}
+              onClick={() => setMenu(false)}
+              className="mono border-b border-[color:var(--line)] py-3.5 text-[12px] last:border-b-0"
+              style={{ color: active === n.id ? "var(--amber)" : "var(--dim)" }}
+            >
+              {n.label}
+            </a>
+          ))}
+        </nav>
       </div>
     </header>
   );
@@ -938,10 +996,8 @@ function Hero() {
 
           {/* the brightest object, framed like a plate from the archive */}
           <a
-            href={plates[0].live || plates[0].source}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative block overflow-hidden border border-[color:var(--line-strong)]"
+            href="#catalogue"
+            className="group relative block overflow-hidden border border-[color:var(--line-strong)] transition-colors hover:border-[color:var(--amber)]/45"
             style={{
               transform: "translate3d(calc(var(--mx,0)*10px), calc(var(--my,0)*7px), 0)",
               transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
@@ -957,9 +1013,21 @@ function Hero() {
                 style={{ background: "linear-gradient(180deg, transparent 55%, rgba(var(--ground-rgb),0.85) 100%)" }}
               />
             </div>
-            <div className="flex items-baseline justify-between border-t border-[color:var(--line)] px-4 py-3">
-              <span className="mono text-[11px] text-[color:var(--amber)]">{plates[0].sg}</span>
-              <span className="mono text-[11px] text-[color:var(--dim)]">{plates[0].type}</span>
+            <div className="mono absolute left-3 top-3 flex items-center gap-2 text-[10px]">
+              <span className="bg-[color:var(--amber)] px-1.5 py-0.5 text-[color:var(--ink)]">{plates[0].sg}</span>
+              <span className="text-[color:var(--dim)]">{plates[0].type}</span>
+            </div>
+            <div className="border-t border-[color:var(--line)] px-4 py-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="display text-xl font-medium text-[color:var(--starlight)]">
+                  {plates[0].name}
+                </span>
+                <span className="mono shrink-0 text-[10px] text-[color:var(--faint)]">Latest plate</span>
+              </div>
+              {/* the single strongest depth signal on the site, above the fold */}
+              <p className="mono mt-1.5 text-[11px] text-[color:var(--ion)]">
+                176× faster than brute force at one million particles
+              </p>
             </div>
           </a>
         </div>
@@ -1124,13 +1192,37 @@ function Catalogue() {
       update();
     };
 
+    /* Keyboard and find-in-page both move focus to cards that are off to the
+       right. Left alone the browser scrolls the clipping box to reveal them,
+       which the transform cannot see. Instead: work out the page scroll offset
+       that brings the focused card into the frame and go there, so the existing
+       scroll -> --travel pipeline stays the single source of truth. */
+    const onFocusIn = (e: FocusEvent) => {
+      const card = (e.target as HTMLElement | null)?.closest<HTMLElement>(".cat-card");
+      const frame = track.parentElement;
+      if (!card || !frame || travel <= 0) return;
+      const span = rail.offsetHeight - window.innerHeight;
+      if (span <= 0) return;
+      const current = parseFloat(track.style.getPropertyValue("--travel") || "0");
+      const want = Math.min(
+        card.offsetLeft,
+        Math.max(current, card.offsetLeft + card.offsetWidth - frame.clientWidth),
+      );
+      const target = Math.min(travel, Math.max(0, want));
+      if (Math.abs(target - current) < 1) return;
+      const railTop = rail.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: railTop + (target / travel) * span, behavior: "auto" });
+    };
+
     measure();
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
+    track.addEventListener("focusin", onFocusIn);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
+      track.removeEventListener("focusin", onFocusIn);
       cancelAnimationFrame(raf);
       rail.style.height = "";
       track.style.removeProperty("--travel");
@@ -1219,17 +1311,26 @@ function Instrument() {
 function Transmit() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
-  const [channels, setChannels] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
   const sendRef = useMagnetic<HTMLButtonElement>(0.22);
-
-  const toggle = (c: string) =>
-    setChannels((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const subject = encodeURIComponent(`Signal from ${name || "the field"}`);
-    const line = channels.length ? `\n\nPreferred channel: ${channels.join(", ")}` : "";
-    window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(message + line)}`;
+    window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(message)}`;
+  };
+
+  /* There is no backend here, so the form hands off to a mail client. A visitor
+     on webmail may have none registered, in which case the button appears to do
+     nothing — this gives them the address instead. */
+  const copyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2400);
+    } catch {
+      // clipboard can be refused; the address is printed beside the form anyway
+    }
   };
 
   const fieldCls =
@@ -1256,23 +1357,8 @@ function Transmit() {
           <label className="mono text-[11px] text-[color:var(--faint)]" htmlFor="name">Name</label>
           <input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Who is transmitting?" className={fieldCls} />
 
-          <fieldset className="mt-5 border-0 p-0">
-            <legend className="mono text-[11px] text-[color:var(--faint)]">Preferred channel</legend>
-            <div className="mt-2 flex gap-5">
-              {["Email", "Phone"].map((c) => (
-                <label
-                  key={c}
-                  className="flex cursor-pointer items-center gap-2 py-1.5 text-[14px] text-[color:var(--dim)]"
-                >
-                  <input type="checkbox" checked={channels.includes(c)} onChange={() => toggle(c)} className="h-4 w-4 accent-[color:var(--amber)]" />
-                  {c}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
           <label className="mono mt-5 block text-[11px] text-[color:var(--faint)]" htmlFor="msg">Message</label>
-          <textarea id="msg" value={message} onChange={(e) => setMessage(e.target.value)} required rows={4} placeholder="What's the signal?" className={`${fieldCls} resize-none`} />
+          <textarea id="msg" value={message} onChange={(e) => setMessage(e.target.value)} required rows={5} placeholder="What&apos;s the signal?" className={`${fieldCls} resize-none`} />
 
           <button
             type="submit"
@@ -1282,6 +1368,22 @@ function Transmit() {
           >
             Transmit
           </button>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
+            <p className="mono text-[11px] text-[color:var(--faint)]">
+              Opens your email app · I reply within a day
+            </p>
+            <button
+              type="button"
+              onClick={copyAddress}
+              className="mono text-[11px] text-[color:var(--dim)] underline decoration-[color:var(--line-strong)] underline-offset-4 transition-colors hover:text-[color:var(--amber)] hover:decoration-[color:var(--amber)]"
+            >
+              {copied ? "Address copied" : "No mail app? Copy the address"}
+            </button>
+          </div>
+          <p aria-live="polite" className="sr-only">
+            {copied ? "Email address copied to clipboard" : ""}
+          </p>
         </form>
       </div>
     </section>
