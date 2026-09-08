@@ -567,7 +567,7 @@ function Header() {
       className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--line)] backdrop-blur-md"
       style={{ background: "rgba(var(--ground-rgb), 0.8)" }}
     >
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
+      <div className="shell flex h-14 items-center justify-between px-5 sm:px-8">
         <a href="#log" className="mono text-[12px] text-[color:var(--starlight)]">
           Sam&nbsp;Gabriel
         </a>
@@ -642,7 +642,7 @@ function Hero() {
       onPointerLeave={onLeave}
       className="relative flex min-h-[100svh] items-center overflow-hidden px-5 pb-24 pt-28 sm:px-8"
     >
-      <div className="mx-auto grid w-full max-w-6xl gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+      <div className="shell grid gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
         {/* left — the log header */}
         <div>
           <p className="marker reveal in">Observation Log · Opened 2026</p>
@@ -704,7 +704,7 @@ function Hero() {
         </a>
       </div>
 
-      <p className="mono absolute inset-x-0 bottom-6 mx-auto max-w-6xl px-5 text-[10px] text-[color:var(--faint)] sm:px-8">
+      <p className="mono shell absolute inset-x-0 bottom-6 px-5 text-[10px] text-[color:var(--faint)] sm:px-8">
         Scroll to open the catalogue ↓
       </p>
     </section>
@@ -849,7 +849,7 @@ function Catalogue() {
   const total = plates.length + catalogue.length;
   return (
     <section id="catalogue" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="shell">
         <div className="reveal flex items-end justify-between border-b border-[color:var(--line-strong)] pb-5">
           <h2 className="display text-4xl font-medium text-[color:var(--starlight)] sm:text-6xl">The Catalogue</h2>
           <p className="mono text-[11px] text-[color:var(--faint)]">{total} objects observed</p>
@@ -885,7 +885,7 @@ function Catalogue() {
 function Instrument() {
   return (
     <section id="instrument" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
-      <div className="mx-auto grid w-full max-w-6xl gap-16 lg:grid-cols-2">
+      <div className="shell grid gap-16 lg:grid-cols-2">
         {/* instrument spec */}
         <div>
           <h2 className="reveal display text-4xl font-medium text-[color:var(--starlight)] sm:text-5xl">Instrument</h2>
@@ -945,7 +945,7 @@ function Transmit() {
 
   return (
     <section id="transmit" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
-      <div className="mx-auto grid w-full max-w-6xl gap-12 border-t border-[color:var(--line-strong)] pt-14 md:grid-cols-[1fr_1fr] md:items-start">
+      <div className="shell grid gap-12 border-t border-[color:var(--line-strong)] pt-14 md:grid-cols-[1fr_1fr] md:items-start">
         <div>
           <h2 className="reveal display text-4xl font-medium leading-[1.02] text-[color:var(--starlight)] sm:text-6xl">
             Open a channel
@@ -999,7 +999,7 @@ function Transmit() {
 function Footer() {
   return (
     <footer className="relative border-t border-[color:var(--line)] px-5 py-8 sm:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+      <div className="shell flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <p className="mono text-[10px] text-[color:var(--faint)]">
           Observation Log of Sam Gabriel · Indore · © {new Date().getFullYear()}
         </p>

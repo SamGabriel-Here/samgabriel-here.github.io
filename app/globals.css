@@ -99,6 +99,25 @@ body {
   color: var(--amber);
 }
 
+/* The page measure. One place, so every section keeps the same rhythm.
+   Below 1280px this is the original 72rem; wider displays get more of the
+   width back instead of paying for it in empty side margins. */
+.shell {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 72rem;
+}
+@media (min-width: 1280px) {
+  .shell {
+    max-width: 82rem;
+  }
+}
+@media (min-width: 1600px) {
+  .shell {
+    max-width: 92rem;
+  }
+}
+
 /* skip link — visible only once focused */
 .skip-link {
   position: fixed;
