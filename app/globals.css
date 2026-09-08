@@ -1,42 +1,52 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------ *
- *  Observation Log — an astronomer's logbook.                         *
- *  Deep observatory night + sodium red-light amber, the single accent.*
+ *  Observation Log — a deep-field record.                             *
+ *  Void violet ground, emission-nebula colour, sodium amber for the   *
+ *  things a human cares about.                                        *
  * ------------------------------------------------------------------ */
 
 :root {
   /* native controls, caret and scrollbars belong to the design too */
   color-scheme: dark;
 
-  --ground: #080a10;
-  --ground-2: #0d1017;
-  --ground-deep: #05070c;
-  --starlight: #eef2f6;
-  --dim: #8b96a5;
-  /* 4.9:1 on --ground, 4.7:1 on --ground-2 — carries 10-12px text, so AA applies */
-  --faint: #767f90;
-  --amber: #ffb454;
-  --amber-deep: #e0873a;
-  /* ink laid on amber: 10.5:1 */
-  --ink: #1a1206;
-  --rail: #1d2431;
+  /* --- ground: the void, with a violet cast --- */
+  --ground: #070512;
+  --ground-2: #0e0b20;
+  --ground-deep: #030208;
 
-  /* raw channels, for the places that need alpha or a canvas fillStyle */
-  --ground-rgb: 8, 10, 16;
+  /* --- text, all verified >= 4.5:1 on both grounds --- */
+  --starlight: #f2eff9; /* 17.8:1 */
+  --dim: #a49ec4; /*  8.0:1 */
+  --faint: #948eb8; /*  6.6:1 on ground, 5.2:1 over the brightest nebula edge */
+
+  /* --- accents. amber is the human one: status, guide star, action. --- */
+  --amber: #ffb454; /* 11.5:1 */
+  --amber-deep: #e0873a;
+  --ion: #67e8f0; /* 13.8:1 — data and instrument readouts */
+  --rose: #ff7ab0; /*  8.3:1 — emission, used sparingly */
+  --violet: #b18cff; /*  7.8:1 — emission, used sparingly */
+  --ink: #0b0716; /* on amber 11.3:1, on ion 13.6:1 */
+
+  /* raw channels for alpha compositing and canvas fillStyle */
+  --ground-rgb: 7, 5, 18;
   --amber-rgb: 255, 180, 84;
+  --ion-rgb: 103, 232, 240;
+  --rose-rgb: 255, 122, 176;
+  --violet-rgb: 177, 140, 255;
 
   /* dividers — decorative, no contrast floor */
-  --line: rgba(238, 242, 246, 0.09);
-  --line-strong: rgba(238, 242, 246, 0.17);
-  /* interactive boundaries — 3.2:1, meets WCAG 1.4.11 */
-  --field-line: rgba(238, 242, 246, 0.38);
+  --line: rgba(242, 239, 249, 0.09);
+  --line-strong: rgba(242, 239, 249, 0.18);
+  /* interactive boundaries — 3.4:1, meets WCAG 1.4.11 */
+  --field-line: rgba(242, 239, 249, 0.4);
 }
 
 @theme inline {
   --color-background: var(--ground);
   --color-foreground: var(--starlight);
   --color-amber: var(--amber);
+  --color-ion: var(--ion);
   --font-body: var(--font-geist);
   --font-display: var(--font-fraunces);
   --font-mono: var(--font-space-mono);
@@ -65,7 +75,6 @@ body {
   border-radius: 1px;
 }
 
-/* Instrument scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -74,7 +83,7 @@ body {
   background: var(--ground-deep);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--rail);
+  background: #241b3d;
   border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -91,7 +100,7 @@ body {
   font-family: var(--font-space-mono), ui-monospace, monospace;
 }
 
-/* small catalogue marker — used sparingly, carries data not decoration */
+/* small catalogue marker — carries data, not decoration */
 .marker {
   font-family: var(--font-space-mono), ui-monospace, monospace;
   font-size: 11px;
@@ -99,9 +108,7 @@ body {
   color: var(--amber);
 }
 
-/* The page measure. One place, so every section keeps the same rhythm.
-   Below 1280px this is the original 72rem; wider displays get more of the
-   width back instead of paying for it in empty side margins. */
+/* The page measure. One place, so every section keeps the same rhythm. */
 .shell {
   width: 100%;
   margin-inline: auto;
@@ -136,6 +143,35 @@ body {
   transform: translateY(0);
 }
 
+/* ------------------------------------------------------------------ *
+ *  The deep field.                                                    *
+ *  Emission lobes bloom at the edges; a scrim holds the middle dark   *
+ *  so the colour never eats the text contrast.                        *
+ * ------------------------------------------------------------------ */
+.nebula-field {
+  position: fixed;
+  inset: 0;
+  z-index: -19;
+  pointer-events: none;
+  background:
+    /* Scrim first — in CSS the first layer paints on top. It has to hold the
+       whole content column under 0.0155 luminance, which is the ceiling for
+       --faint text to keep 4.5:1. The colour lives past the text, at the
+       edges and corners. */
+    radial-gradient(
+      86% 76% at 50% 46%,
+      rgba(var(--ground-rgb), 0.97) 0%,
+      rgba(var(--ground-rgb), 0.93) 46%,
+      rgba(var(--ground-rgb), 0.62) 76%,
+      rgba(var(--ground-rgb), 0) 100%
+    ),
+    radial-gradient(46% 38% at 6% 8%, rgba(var(--violet-rgb), 0.5) 0%, transparent 70%),
+    radial-gradient(42% 34% at 96% 14%, rgba(var(--rose-rgb), 0.44) 0%, transparent 72%),
+    radial-gradient(48% 40% at 92% 90%, rgba(var(--ion-rgb), 0.34) 0%, transparent 70%),
+    radial-gradient(52% 42% at 3% 94%, rgba(var(--violet-rgb), 0.36) 0%, transparent 74%),
+    radial-gradient(38% 30% at 64% 2%, rgba(var(--ion-rgb), 0.22) 0%, transparent 72%);
+}
+
 /* faint celestial coordinate grid, fixed behind content */
 .grid-field {
   position: fixed;
@@ -160,9 +196,15 @@ body {
     transform: scale(1.06);
   }
   to {
-    opacity: 0.55;
+    opacity: 0.5;
     transform: scale(1);
   }
+}
+
+/* amber bloom — the one glow, reserved for the things that are alight */
+.bloom {
+  filter: drop-shadow(0 0 10px rgba(var(--amber-rgb), 0.55))
+    drop-shadow(0 0 26px rgba(var(--amber-rgb), 0.28));
 }
 
 /* ---- entrances ---- */

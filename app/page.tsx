@@ -333,14 +333,27 @@ function CursorGlow() {
   );
 }
 
-/* The star chart: cool field, one amber guide star, pointer + scroll parallax */
-type Star = { x: number; y: number; d: number; s: number; b: number; tw: number; ph: number; tint: string };
+/* The deep field. Three parallax bands of stars in emission colours, the
+   brightest few haloed, and one amber guide star. Still throttled to 30fps,
+   DPR-capped and parked when the tab is hidden: this is atmosphere, not a
+   reason to spin the fan. */
+type Star = {
+  x: number;
+  y: number;
+  d: number;
+  s: number;
+  b: number;
+  tw: number;
+  ph: number;
+  tint: string;
+  halo: boolean;
+};
 
-const TINTS = ["238,242,246", "190,214,240", "255,210,150"];
-
-// canvas cannot read a CSS custom property, so the accent is named once here
+// straight from the palette: starlight, ion, rose, violet, warm gold
+const TINTS = ["242,239,249", "103,232,240", "255,122,176", "177,140,255", "255,200,150"];
+const TINT_WEIGHTS = [0.5, 0.16, 0.11, 0.11, 0.12];
 const AMBER_RGB = "255,180,84"; // --amber
-const AMBER_CORE_RGB = "255,200,130"; // --amber, lifted toward its core
+const AMBER_CORE_RGB = "255,214,170"; // --amber, lifted toward its core
 
 function makeStars(n: number): Star[] {
   let seed = 2113;
@@ -348,17 +361,26 @@ function makeStars(n: number): Star[] {
     seed = (seed * 1103515245 + 12345) % 2147483648;
     return seed / 2147483648;
   };
+  const pickTint = () => {
+    let r = rand();
+    for (let i = 0; i < TINT_WEIGHTS.length; i++) {
+      r -= TINT_WEIGHTS[i];
+      if (r <= 0) return TINTS[i];
+    }
+    return TINTS[0];
+  };
   return Array.from({ length: n }, () => {
     const d = rand();
     return {
       x: rand(),
       y: rand(),
       d,
-      s: d > 0.9 ? 2 : 1,
-      b: 0.25 + d * 0.6,
-      tw: 0.0006 + rand() * 0.0015,
+      s: d > 0.93 ? 2 : 1,
+      b: 0.22 + d * 0.66,
+      tw: 0.0006 + rand() * 0.0016,
       ph: rand() * Math.PI * 2,
-      tint: TINTS[Math.floor(rand() * 8) % 3 === 2 && rand() > 0.75 ? 2 : Math.floor(rand() * 2)],
+      tint: pickTint(),
+      halo: d > 0.955,
     };
   });
 }
@@ -395,8 +417,9 @@ function StarChart() {
     resize();
     window.addEventListener("resize", resize);
 
-    const stars = makeStars(210);
-    // one amber guide star, catalogued
+    // density follows the viewport, so a phone never draws a desktop's field
+    const count = Math.round(Math.max(150, Math.min(520, (innerWidth * innerHeight) / 3400)));
+    const stars = makeStars(count);
     const guide = { x: 0.78, y: 0.26 };
 
     const draw = (t: number) => {
@@ -407,24 +430,37 @@ function StarChart() {
 
       for (const s of stars) {
         const drift = t * 0.0000016 * (0.25 + s.d);
-        const x = (((s.x + drift - px * (0.006 + s.d * 0.02)) % 1) + 1) % 1;
-        const yy = s.y - (scroll * (0.02 + s.d * 0.06)) / h - py * (0.004 + s.d * 0.012);
+        const x = (((s.x + drift - px * (0.006 + s.d * 0.026)) % 1) + 1) % 1;
+        const yy = s.y - (scroll * (0.02 + s.d * 0.08)) / h - py * (0.004 + s.d * 0.016);
         const y = ((yy % 1) + 1) % 1;
         const a = s.b * (0.55 + 0.45 * Math.sin(t * s.tw + s.ph));
+        const cx = Math.round(x * w);
+        const cy = Math.round(y * h);
+        if (s.halo) {
+          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 7);
+          g.addColorStop(0, `rgba(${s.tint},${(a * 0.45).toFixed(3)})`);
+          g.addColorStop(1, `rgba(${s.tint},0)`);
+          ctx.fillStyle = g;
+          ctx.fillRect(cx - 7, cy - 7, 14, 14);
+        }
         ctx.fillStyle = `rgba(${s.tint},${a.toFixed(3)})`;
-        ctx.fillRect(Math.round(x * w), Math.round(y * h), s.s, s.s);
+        ctx.fillRect(cx, cy, s.s, s.s);
       }
 
-      // guide star — amber, haloed, parallaxing with the near field
+      // the guide star — the one thing that is alight
       const gx = (guide.x - px * 0.03) * w;
       const gy = (guide.y - (scroll * 0.05) / h - py * 0.02) * h;
       const pulse = 0.6 + 0.4 * Math.sin(t * 0.0022);
-      const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 26);
-      grad.addColorStop(0, `rgba(${AMBER_RGB},${(0.5 * pulse).toFixed(3)})`);
+      // halo kept under the luminance ceiling that --faint text needs; the
+      // core still reads as a lit star without washing out anything behind it
+      const rad = 26;
+      const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, rad);
+      grad.addColorStop(0, `rgba(${AMBER_RGB},${(0.26 * pulse).toFixed(3)})`);
+      grad.addColorStop(0.45, `rgba(${AMBER_RGB},${(0.07 * pulse).toFixed(3)})`);
       grad.addColorStop(1, `rgba(${AMBER_RGB},0)`);
       ctx.fillStyle = grad;
-      ctx.fillRect(gx - 26, gy - 26, 52, 52);
-      ctx.fillStyle = `rgba(${AMBER_CORE_RGB},${(0.85 * pulse).toFixed(3)})`;
+      ctx.fillRect(gx - rad, gy - rad, rad * 2, rad * 2);
+      ctx.fillStyle = `rgba(${AMBER_CORE_RGB},${(0.9 * pulse).toFixed(3)})`;
       ctx.fillRect(Math.round(gx), Math.round(gy), 2, 2);
     };
 
@@ -465,6 +501,12 @@ function StarChart() {
     };
   }, []);
   return <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 -z-10" />;
+}
+
+/* Emission lobes at the edges, scrim through the middle. Pure CSS, so it
+   costs one paint and never repaints. */
+function NebulaField() {
+  return <div aria-hidden className="nebula-field" />;
 }
 
 function GridField() {
@@ -642,66 +684,70 @@ function Hero() {
       onPointerLeave={onLeave}
       className="relative flex min-h-[100svh] items-center overflow-hidden px-5 pb-24 pt-28 sm:px-8"
     >
-      <div className="shell grid gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-        {/* left — the log header */}
-        <div>
-          <p className="marker reveal in">Observation Log · Opened 2026</p>
-          <h1
-            className="display reveal in mt-5 text-[clamp(3.2rem,9vw,7rem)] font-medium leading-[0.94] tracking-[-0.02em] text-[color:var(--starlight)]"
-            style={{
-              transform: "translate3d(calc(var(--mx,0)*-6px), calc(var(--my,0)*-4px), 0)",
-              transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
-            }}
-          >
-            Sam Gabriel
-          </h1>
-          <p className="reveal in mt-7 max-w-[54ch] text-[17px] leading-relaxed text-[color:var(--dim)]">
-            Machine-learning and software engineer. I take hard problems — GPU
-            physics, the night sky, messy data — and build instruments that make
-            them legible.
-          </p>
+      <div className="shell">
+        <p className="marker reveal in">Observation Log · Opened 2026</p>
 
-          <dl className="reveal in mono mt-10 grid max-w-lg grid-cols-1 gap-y-3 text-[12px] sm:grid-cols-[110px_1fr]">
-            {meta.map(([k, v]) => (
-              <div key={k} className="contents">
-                <dt className="text-[color:var(--faint)]">{k}</dt>
-                <dd className="text-[color:var(--starlight)]">{v}</dd>
-              </div>
-            ))}
-            <dt className="text-[color:var(--faint)]">Status</dt>
-            <dd className="flex items-center gap-2 text-[color:var(--amber)]">
-              <span className="guide-star inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--amber)]" />
-              Open to work
-            </dd>
-          </dl>
-        </div>
-
-        {/* right — a plate: the brightest object */}
-        <a
-          href={plates[0].live || plates[0].source}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="reveal in group relative block overflow-hidden border border-[color:var(--line-strong)]"
+        {/* the name at full measure — the first thing the deep field frames */}
+        <h1
+          className="display reveal in mt-4 text-[clamp(3.4rem,12vw,8.5rem)] font-medium leading-[0.86] tracking-[-0.035em] text-[color:var(--starlight)]"
           style={{
-            transform: "translate3d(calc(var(--mx,0)*8px), calc(var(--my,0)*6px), 0)",
+            transform: "translate3d(calc(var(--mx,0)*-8px), calc(var(--my,0)*-5px), 0)",
             transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
           }}
         >
-          <div className="relative aspect-[4/3] overflow-hidden">
-            <PlateMedia
-              o={plates[0]}
-              className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
-            />
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(180deg, transparent 55%, rgba(var(--ground-rgb),0.85) 100%)" }}
-            />
+          Sam Gabriel
+        </h1>
+
+        <div className="mt-11 grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-start lg:gap-14">
+          <div>
+            <p className="reveal in max-w-[52ch] text-[18px] leading-relaxed text-[color:var(--dim)]">
+              Machine-learning and software engineer. I take hard problems — GPU
+              physics, the night sky, messy data — and build instruments that make
+              them legible.
+            </p>
+
+            <dl className="reveal in mono mt-9 grid max-w-lg grid-cols-1 gap-y-3 text-[12px] sm:grid-cols-[110px_1fr]">
+              {meta.map(([k, v]) => (
+                <div key={k} className="contents">
+                  <dt className="text-[color:var(--faint)]">{k}</dt>
+                  <dd className="text-[color:var(--starlight)]">{v}</dd>
+                </div>
+              ))}
+              <dt className="text-[color:var(--faint)]">Status</dt>
+              <dd className="flex items-center gap-2 text-[color:var(--amber)]">
+                <span className="guide-star bloom inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--amber)]" />
+                Open to work
+              </dd>
+            </dl>
           </div>
-          <div className="flex items-baseline justify-between border-t border-[color:var(--line)] px-4 py-3">
-            <span className="mono text-[11px] text-[color:var(--amber)]">{plates[0].sg}</span>
-            <span className="mono text-[11px] text-[color:var(--dim)]">{plates[0].type}</span>
-          </div>
-        </a>
+
+          {/* the brightest object, framed like a plate from the archive */}
+          <a
+            href={plates[0].live || plates[0].source}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="reveal in group relative block overflow-hidden border border-[color:var(--line-strong)]"
+            style={{
+              transform: "translate3d(calc(var(--mx,0)*10px), calc(var(--my,0)*7px), 0)",
+              transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
+            }}
+          >
+            <div className="relative aspect-[16/10] overflow-hidden">
+              <PlateMedia
+                o={plates[0]}
+                className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+              />
+              <div
+                className="absolute inset-0"
+                style={{ background: "linear-gradient(180deg, transparent 55%, rgba(var(--ground-rgb),0.85) 100%)" }}
+              />
+            </div>
+            <div className="flex items-baseline justify-between border-t border-[color:var(--line)] px-4 py-3">
+              <span className="mono text-[11px] text-[color:var(--amber)]">{plates[0].sg}</span>
+              <span className="mono text-[11px] text-[color:var(--dim)]">{plates[0].type}</span>
+            </div>
+          </a>
+        </div>
       </div>
 
       <p className="mono shell absolute inset-x-0 bottom-6 px-5 text-[10px] text-[color:var(--faint)] sm:px-8">
@@ -851,7 +897,7 @@ function Catalogue() {
     <section id="catalogue" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
       <div className="shell">
         <div className="reveal flex items-end justify-between border-b border-[color:var(--line-strong)] pb-5">
-          <h2 className="display text-4xl font-medium text-[color:var(--starlight)] sm:text-6xl">The Catalogue</h2>
+          <h2 className="display text-5xl font-medium tracking-[-0.03em] text-[color:var(--starlight)] sm:text-7xl">The Catalogue</h2>
           <p className="mono text-[11px] text-[color:var(--faint)]">{total} objects observed</p>
         </div>
 
@@ -888,7 +934,7 @@ function Instrument() {
       <div className="shell grid gap-16 lg:grid-cols-2">
         {/* instrument spec */}
         <div>
-          <h2 className="reveal display text-4xl font-medium text-[color:var(--starlight)] sm:text-5xl">Instrument</h2>
+          <h2 className="reveal display text-4xl font-medium tracking-[-0.02em] text-[color:var(--starlight)] sm:text-6xl">Instrument</h2>
           <p className="reveal mt-3 max-w-[46ch] text-[15px] leading-relaxed text-[color:var(--dim)]">
             What I build with. Read it as a spec sheet — the optics, the mount, the software behind the eyepiece.
           </p>
@@ -904,7 +950,7 @@ function Instrument() {
 
         {/* record — a real dated sequence, so: a timeline */}
         <div>
-          <h2 className="reveal display text-4xl font-medium text-[color:var(--starlight)] sm:text-5xl">Record</h2>
+          <h2 className="reveal display text-4xl font-medium tracking-[-0.02em] text-[color:var(--starlight)] sm:text-6xl">Record</h2>
           <p className="reveal mt-3 max-w-[46ch] text-[15px] leading-relaxed text-[color:var(--dim)]">
             Where the observing time went.
           </p>
@@ -947,7 +993,7 @@ function Transmit() {
     <section id="transmit" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
       <div className="shell grid gap-12 border-t border-[color:var(--line-strong)] pt-14 md:grid-cols-[1fr_1fr] md:items-start">
         <div>
-          <h2 className="reveal display text-4xl font-medium leading-[1.02] text-[color:var(--starlight)] sm:text-6xl">
+          <h2 className="reveal display text-5xl font-medium leading-[0.98] tracking-[-0.03em] text-[color:var(--starlight)] sm:text-7xl">
             Open a channel
           </h2>
           <p className="reveal mt-5 max-w-[42ch] text-[16px] leading-relaxed text-[color:var(--dim)]">
@@ -1043,6 +1089,7 @@ export default function Home() {
         <style>{`.reveal{opacity:1 !important}`}</style>
       </noscript>
       <BackgroundLoop />
+      <NebulaField />
       <StarChart />
       <GridField />
       <CursorGlow />
