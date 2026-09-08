@@ -667,10 +667,61 @@ function Grain() {
   return <div aria-hidden className="grain" />;
 }
 
+/* The mark. SG punched into a plate: S is 01010011 and G is 01000111, the
+   sixteen bits laid out in reading order, and a filled hole is a one. It is
+   notation rather than illustration, which is the same reason the catalogue
+   designates the work SG-1 to SG-8. */
+const SG_BITS = "0101001101000111";
+
+function PlateMark({ size = 20 }: { size?: number }) {
+  return (
+    <svg aria-hidden viewBox="0 0 40 40" className="plate-mark" style={{ width: size, height: size }}>
+      <rect x="2.5" y="2.5" width="35" height="35" fill="none" stroke="currentColor" strokeOpacity="0.28" strokeWidth="0.9" />
+      {Array.from(SG_BITS).map((bit, i) => {
+        const cx = 8.5 + (i % 4) * 7.7;
+        const cy = 8.5 + Math.floor(i / 4) * 7.7;
+        return bit === "1" ? (
+          <circle
+            key={i}
+            className="bit-on"
+            cx={cx}
+            cy={cy}
+            r={2.6}
+            fill="var(--amber)"
+            style={{ "--i": i } as React.CSSProperties}
+          />
+        ) : (
+          <circle key={i} cx={cx} cy={cy} r={1.5} fill="none" stroke="currentColor" strokeOpacity="0.24" strokeWidth="0.8" />
+        );
+      })}
+    </svg>
+  );
+}
+
+/* A star with real diffraction spikes — the kind thrown by the vanes holding a
+   telescope's secondary mirror. It sits over the tittle of the i, so the
+   letter's own dot becomes the star's burning core and nothing is removed. */
+function TittleStar() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="tittle-star">
+      <g className="spikes">
+        <polygon points="12,0 12.7,12 11.3,12" fill="var(--amber)" />
+        <polygon points="12,24 12.7,12 11.3,12" fill="var(--amber)" />
+        <polygon points="0,12 12,12.7 12,11.3" fill="var(--amber)" />
+        <polygon points="24,12 12,12.7 12,11.3" fill="var(--amber)" />
+        <g transform="rotate(45 12 12)" opacity="0.45">
+          <polygon points="12,3.5 12.5,12 11.5,12" fill="var(--amber)" />
+          <polygon points="12,20.5 12.5,12 11.5,12" fill="var(--amber)" />
+        </g>
+      </g>
+    </svg>
+  );
+}
+
 /* A headline split to characters so it can arrive as a cascade. The spans are
    hidden from assistive tech and the heading carries the real label, so this
    is never read out letter by letter. */
-function SplitText({ text, delay = 0.12 }: { text: string; delay?: number }) {
+function SplitText({ text, delay = 0.12, star = false }: { text: string; delay?: number; star?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -683,7 +734,14 @@ function SplitText({ text, delay = 0.12 }: { text: string; delay?: number }) {
     <span ref={ref} aria-hidden="true">
       {Array.from(text).map((ch, i) => (
         <span key={`${ch}-${i}`} className="char" style={{ animationDelay: `${delay + i * 0.028}s` }}>
-          {ch}
+          {star && ch === "i" ? (
+            <span className="tittle">
+              i
+              <TittleStar />
+            </span>
+          ) : (
+            ch
+          )}
         </span>
       ))}
     </span>
@@ -883,11 +941,9 @@ function Header() {
       <div className="shell grid h-14 grid-cols-[1fr_auto_1fr] items-center px-5 sm:px-8">
         {/* the display face, so the name reads as the identity and not as a
             fourth nav item */}
-        <a
-          href="#log"
-          className="display justify-self-start text-[15px] font-medium tracking-[-0.01em] text-[color:var(--starlight)]"
-        >
-          Sam&nbsp;Gabriel
+        <a href="#log" className="flex items-center gap-2.5 justify-self-start text-[color:var(--starlight)]">
+          <PlateMark size={20} />
+          <span className="display text-[15px] font-medium tracking-[-0.01em]">Sam&nbsp;Gabriel</span>
         </a>
         <nav aria-label="Sections" className="hidden items-center gap-7 md:flex">
           {nav.map((n) => (
@@ -1021,7 +1077,7 @@ function Hero() {
             transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
           }}
         >
-          <SplitText text="Sam Gabriel" />
+          <SplitText text="Sam Gabriel" star />
         </h1>
 
         <div className="mt-11 grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-start lg:gap-14">
@@ -1451,7 +1507,8 @@ function Footer() {
   return (
     <footer className="relative border-t border-[color:var(--line)] px-5 py-8 sm:px-8">
       <div className="shell flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-        <p className="mono text-[10px] text-[color:var(--faint)]">
+        <p className="mono flex items-center gap-2.5 text-[10px] text-[color:var(--faint)]">
+          <PlateMark size={16} />
           Observation Log of Sam Gabriel · Indore · © {new Date().getFullYear()}
         </p>
         <p className="mono text-[10px] text-[color:var(--faint)]">

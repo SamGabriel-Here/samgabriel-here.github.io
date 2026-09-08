@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <!-- SG punched into a plate. S = 01010011, G = 01000111, sixteen bits in
+       reading order. A filled hole is a one. -->
+  <rect width="40" height="40" fill="#070512"/>
+  <rect x="2.5" y="2.5" width="35" height="35" fill="none" stroke="#f2eff9" stroke-opacity=".22" stroke-width=".9"/>
+
+  <g fill="none" stroke="#f2eff9" stroke-opacity=".2" stroke-width=".8">
+    <circle cx="8.5" cy="8.5" r="1.5"/>
+    <circle cx="23.9" cy="8.5" r="1.5"/>
+    <circle cx="8.5" cy="16.2" r="1.5"/>
+    <circle cx="16.2" cy="16.2" r="1.5"/>
+    <circle cx="8.5" cy="23.9" r="1.5"/>
+    <circle cx="23.9" cy="23.9" r="1.5"/>
+    <circle cx="31.6" cy="23.9" r="1.5"/>
+    <circle cx="8.5" cy="31.6" r="1.5"/>
+  </g>
+
+  <g fill="#ffb454">
+    <circle cx="16.2" cy="8.5" r="2.6"/>
+    <circle cx="31.6" cy="8.5" r="2.6"/>
+    <circle cx="23.9" cy="16.2" r="2.6"/>
+    <circle cx="31.6" cy="16.2" r="2.6"/>
+    <circle cx="16.2" cy="23.9" r="2.6"/>
+    <circle cx="16.2" cy="31.6" r="2.6"/>
+    <circle cx="23.9" cy="31.6" r="2.6"/>
+    <circle cx="31.6" cy="31.6" r="2.6"/>
+  </g>
+</svg>

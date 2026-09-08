@@ -307,6 +307,21 @@ overridden, because hiding the system cursor takes away an affordance some peopl
 depend on, including anyone using OS cursor-size settings. Do not widen the gate,
 and do not apply `cursor: none` outside `.reticle-on`.
 
+**The mark (`PlateMark`).** SG punched into a plate. `S` is `01010011` and `G` is
+`01000111`; those sixteen bits fill a 4x4 grid in reading order, and a filled amber
+hole is a one. Empty positions carry a faint ring so the grid reads as a card rather
+than a scatter. It appears in the header at 20px, in the footer at 16px, and as
+`app/icon.svg`, which replaced the Next.js default favicon. The holes punch in on
+first paint, staggered 45ms apart, and punch again on hover.
+
+**The wordmark.** The name is set in the display face. In the hero, and only in the
+hero, the tittle of the **i** in Gabriel is replaced by a star with real diffraction
+spikes — the kind thrown by the vanes holding a telescope's secondary mirror. The
+letter's own dot becomes the star's burning core, so nothing is removed from the
+glyph and the text stays selectable. This is a display-size device: below roughly
+3rem the spikes stop resolving, which is why the 15px header wordmark is plain and
+the mark carries identity there instead.
+
 **Backgrounds.** Four fixed layers, by explicit owner decision: a video loop
 (desktop and motion-ok only), the nebula field, the canvas star field, and the
 coordinate grid. Optimising how they run is welcome; removing one is the owner's
@@ -355,6 +370,11 @@ The binding token is `--faint`. It must stay at or above 4.5:1 against the
 - Don't use monospace for prose. It marks data here.
 - Don't reintroduce per-section `max-w-*`; the measure is `.shell`.
 - Don't put `--line-strong` on an interactive boundary; that is `--field-line`.
+- **Don't "tidy" the mark's bit pattern.** Those eight filled holes are not a
+  decorative arrangement — they are `0101001101000111`, which is S and G in ASCII.
+  Rebalancing them for looks destroys the only thing that makes the mark true.
+- Don't put the tittle star on the header wordmark or anywhere under ~3rem. It
+  becomes a smudge, and the plate mark already does that job at small size.
 - Don't invent celestial coordinates or magnitudes for the catalogue objects. Live
   astronomical values that are actually computed, such as the sidereal time and moon
   phase in the hero, are fine. Fabricated data next to real work is not.
