@@ -509,6 +509,34 @@ function NebulaField() {
   return <div aria-hidden className="nebula-field" />;
 }
 
+/* Photographic grain over the whole frame. One fixed element, no repaint. */
+function Grain() {
+  return <div aria-hidden className="grain" />;
+}
+
+/* A headline split to characters so it can arrive as a cascade. The spans are
+   hidden from assistive tech and the heading carries the real label, so this
+   is never read out letter by letter. */
+function SplitText({ text, delay = 0.12 }: { text: string; delay?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // drop the property hint once the cascade is over
+    const t = setTimeout(() => el.classList.add("split-done"), (delay + text.length * 0.028 + 1) * 1000);
+    return () => clearTimeout(t);
+  }, [delay, text.length]);
+  return (
+    <span ref={ref} aria-hidden="true">
+      {Array.from(text).map((ch, i) => (
+        <span key={`${ch}-${i}`} className="char" style={{ animationDelay: `${delay + i * 0.028}s` }}>
+          {ch}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function GridField() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -593,6 +621,30 @@ function Clock() {
 function Header() {
   const [active, setActive] = useState("log");
   const ctaRef = useMagnetic<HTMLAnchorElement>(0.4);
+  const barRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el) return;
+    let last = window.scrollY;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 6) return; // ignore jitter and rubber-banding
+      el.dataset.hidden = y > last && y > 140 ? "true" : "false";
+      last = y;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   useEffect(() => {
     const io = new IntersectionObserver(
       (es) => es.forEach((e) => e.isIntersecting && setActive(e.target.id)),
@@ -606,7 +658,13 @@ function Header() {
   }, []);
   return (
     <header
-      className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--line)] backdrop-blur-md"
+      ref={barRef}
+      data-hidden="false"
+      // a keyboard user tabbing into a retreated header must bring it back
+      onFocusCapture={() => {
+        if (barRef.current) barRef.current.dataset.hidden = "false";
+      }}
+      className="nav-shell fixed inset-x-0 top-0 z-40 border-b border-[color:var(--line)] backdrop-blur-md"
       style={{ background: "rgba(var(--ground-rgb), 0.8)" }}
     >
       <div className="shell flex h-14 items-center justify-between px-5 sm:px-8">
@@ -682,31 +740,32 @@ function Hero() {
       onPointerEnter={onEnter}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className="relative flex min-h-[100svh] items-center overflow-hidden px-5 pb-24 pt-28 sm:px-8"
+      className="entry relative flex min-h-[100svh] items-center overflow-hidden px-5 pb-24 pt-28 sm:px-8"
     >
       <div className="shell">
-        <p className="marker reveal in">Observation Log · Opened 2026</p>
+        <p className="marker">Observation Log · Opened 2026</p>
 
         {/* the name at full measure — the first thing the deep field frames */}
         <h1
-          className="display reveal in mt-4 text-[clamp(3.4rem,12vw,8.5rem)] font-medium leading-[0.86] tracking-[-0.035em] text-[color:var(--starlight)]"
+          aria-label="Sam Gabriel"
+          className="display mt-4 text-[clamp(3.4rem,12vw,8.5rem)] font-medium leading-[0.86] tracking-[-0.035em] text-[color:var(--starlight)]"
           style={{
             transform: "translate3d(calc(var(--mx,0)*-8px), calc(var(--my,0)*-5px), 0)",
             transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
           }}
         >
-          Sam Gabriel
+          <SplitText text="Sam Gabriel" />
         </h1>
 
         <div className="mt-11 grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-start lg:gap-14">
           <div>
-            <p className="reveal in max-w-[52ch] text-[18px] leading-relaxed text-[color:var(--dim)]">
+            <p className="max-w-[52ch] text-[18px] leading-relaxed text-[color:var(--dim)]">
               Machine-learning and software engineer. I take hard problems — GPU
               physics, the night sky, messy data — and build instruments that make
               them legible.
             </p>
 
-            <dl className="reveal in mono mt-9 grid max-w-lg grid-cols-1 gap-y-3 text-[12px] sm:grid-cols-[110px_1fr]">
+            <dl className="mono mt-9 grid max-w-lg grid-cols-1 gap-y-3 text-[12px] sm:grid-cols-[110px_1fr]">
               {meta.map(([k, v]) => (
                 <div key={k} className="contents">
                   <dt className="text-[color:var(--faint)]">{k}</dt>
@@ -726,7 +785,7 @@ function Hero() {
             href={plates[0].live || plates[0].source}
             target="_blank"
             rel="noopener noreferrer"
-            className="reveal in group relative block overflow-hidden border border-[color:var(--line-strong)]"
+            className="group relative block overflow-hidden border border-[color:var(--line-strong)]"
             style={{
               transform: "translate3d(calc(var(--mx,0)*10px), calc(var(--my,0)*7px), 0)",
               transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
@@ -816,7 +875,7 @@ function Plate({ o }: { o: Obj }) {
       onMouseEnter={enter}
       onMouseMove={move}
       onMouseLeave={leave}
-      className="reveal group relative block overflow-hidden border border-[color:var(--line-strong)] hover:border-[color:var(--amber)]/45"
+      className="group relative block overflow-hidden border border-[color:var(--line-strong)] hover:border-[color:var(--amber)]/45"
       style={{ transformStyle: "preserve-3d" }}
     >
       <div className="relative aspect-[16/10] overflow-hidden">
@@ -865,64 +924,95 @@ function Plate({ o }: { o: Obj }) {
   );
 }
 
-function CatalogueRow({ o }: { o: Obj }) {
-  const href = o.live || o.source;
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="reveal group grid grid-cols-[64px_1fr_auto] items-center gap-4 border-t border-[color:var(--line)] py-4 transition-colors hover:bg-[color:var(--ground-2)] sm:grid-cols-[72px_minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:gap-6 sm:px-3"
-    >
-      <div className="relative aspect-square w-16 overflow-hidden border border-[color:var(--line)] sm:w-[72px]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={o.thumb} alt="" className="h-full w-full object-cover opacity-80 transition-all duration-500 group-hover:scale-110 group-hover:opacity-100" loading="lazy" />
-      </div>
-      <div className="min-w-0">
-        <div className="flex items-baseline gap-3">
-          <span className="mono text-[10px] text-[color:var(--amber)]">{o.sg}</span>
-          <h3 className="display truncate text-xl font-medium text-[color:var(--starlight)] transition-colors group-hover:text-[color:var(--amber)]">{o.name}</h3>
-        </div>
-        <p className="mt-1 truncate text-[13px] text-[color:var(--dim)]">{o.blurb}</p>
-      </div>
-      <p className="mono hidden text-[11px] text-[color:var(--faint)] sm:block">{o.instrument}</p>
-      <span className="mono text-[11px] text-[color:var(--dim)] transition-colors group-hover:text-[color:var(--amber)]">{o.type}</span>
-    </a>
-  );
-}
-
+/* The catalogue as a horizontal journey. The pin is position: sticky and the
+   travel is a single transform driven by one CSS variable, so there is no
+   animation library and no layout work per frame — one rect read, one write.
+   Below 1024px, and whenever motion is unwelcome, it is simply a list. */
 function Catalogue() {
-  const total = plates.length + catalogue.length;
+  const all = [...plates, ...catalogue];
+  const railRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    const track = trackRef.current;
+    if (!rail || !track) return;
+    if (!window.matchMedia("(min-width: 1024px)").matches) return;
+    // the pinned frame is ~670px tall; below that it would be silently clipped
+    if (!window.matchMedia("(min-height: 720px)").matches) return;
+    if (prefersReducedMotion()) return;
+
+    let raf = 0;
+    let travel = 0;
+
+    const measure = () => {
+      const frame = track.parentElement;
+      if (!frame) return;
+      travel = Math.max(0, track.scrollWidth - frame.clientWidth);
+      // the rail is as tall as the viewport plus the distance the track travels,
+      // so one screen of scrolling maps to one screen of horizontal movement
+      rail.style.height = `${window.innerHeight + travel}px`;
+    };
+    const update = () => {
+      raf = 0;
+      const span = rail.offsetHeight - window.innerHeight;
+      if (span <= 0) return;
+      const p = Math.min(1, Math.max(0, -rail.getBoundingClientRect().top / span));
+      track.style.setProperty("--travel", (p * travel).toFixed(1));
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    const onResize = () => {
+      measure();
+      update();
+    };
+
+    measure();
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      cancelAnimationFrame(raf);
+      rail.style.height = "";
+      track.style.removeProperty("--travel");
+    };
+  }, []);
+
   return (
-    <section id="catalogue" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
-      <div className="shell">
-        <div className="reveal flex items-end justify-between border-b border-[color:var(--line-strong)] pb-5">
-          <h2 className="display text-5xl font-medium tracking-[-0.03em] text-[color:var(--starlight)] sm:text-7xl">The Catalogue</h2>
-          <p className="mono text-[11px] text-[color:var(--faint)]">{total} objects observed</p>
-        </div>
+    <section id="catalogue" className="relative scroll-mt-14">
+      <div ref={railRef} className="cat-rail">
+        <div className="cat-pin">
+          <div className="shell px-5 py-24 sm:px-8 lg:py-0">
+            <div className="flex items-end justify-between border-b border-[color:var(--line-strong)] pb-5">
+              <h2 className="display text-5xl font-medium tracking-[-0.03em] text-[color:var(--starlight)] sm:text-7xl">
+                The Catalogue
+              </h2>
+              <p className="mono text-[11px] text-[color:var(--faint)]">{all.length} objects observed</p>
+            </div>
 
-        {/* two brightest — full plates */}
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {plates.map((o) => (
-            <Plate key={o.name} o={o} />
-          ))}
-        </div>
-
-        {/* the index */}
-        <div className="mt-14">
-          <p className="mono mb-1 text-[11px] text-[color:var(--faint)]">Index — SG-3 through SG-8</p>
-          <div>
-            {catalogue.map((o) => (
-              <CatalogueRow key={o.name} o={o} />
-            ))}
+            <div ref={trackRef} className="cat-track mt-10">
+              {all.map((o) => (
+                <div key={o.name} className="cat-card">
+                  <Plate o={o} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="reveal mt-10">
-          <a href={github} target="_blank" rel="noopener noreferrer" className="mono text-[12px] text-[color:var(--dim)] underline decoration-[color:var(--line-strong)] underline-offset-4 transition-colors hover:text-[color:var(--amber)] hover:decoration-[color:var(--amber)]">
-            Full observation archive on GitHub
-          </a>
-        </div>
+      <div className="shell px-5 pb-24 sm:px-8 sm:pb-32">
+        <a
+          href={github}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mono text-[12px] text-[color:var(--dim)] underline decoration-[color:var(--line-strong)] underline-offset-4 transition-colors hover:text-[color:var(--amber)] hover:decoration-[color:var(--amber)]"
+        >
+          Full observation archive on GitHub
+        </a>
       </div>
     </section>
   );
@@ -1091,6 +1181,7 @@ export default function Home() {
       <BackgroundLoop />
       <NebulaField />
       <StarChart />
+      <Grain />
       <GridField />
       <CursorGlow />
       <ScrollProgress />

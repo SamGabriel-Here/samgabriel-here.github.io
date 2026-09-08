@@ -207,6 +207,116 @@ body {
     drop-shadow(0 0 26px rgba(var(--amber-rgb), 0.28));
 }
 
+/* ------------------------------------------------------------------ *
+ *  Texture, entry, and the scroll instrument                          *
+ * ------------------------------------------------------------------ */
+
+/* Photographic grain. Sits above content so the whole frame shares one
+   surface; kept at 0.03 so measured text contrast is unaffected. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* First paint arrives through a sweep rather than a loading gate — the page
+   is a static export and already paints fast; a preloader would only add
+   delay. */
+@keyframes entrySweep {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+.entry {
+  animation: entrySweep 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Headline split into characters. The h1 carries an aria-label and the
+   spans are hidden from assistive tech, so this never spells the name out. */
+@keyframes charIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.42em, 0);
+    filter: blur(9px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+.char {
+  display: inline-block;
+  white-space: pre;
+  will-change: transform, opacity;
+  animation: charIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* the property hint is only useful while the entrance runs */
+.split-done .char {
+  will-change: auto;
+}
+
+/* Header retreats on the way down and returns on the way up */
+.nav-shell {
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.nav-shell[data-hidden="true"] {
+  transform: translate3d(0, -100%, 0);
+}
+
+/* The catalogue as a horizontal journey. The pin is position: sticky and the
+   travel is one transform, so no library and no layout work per frame. */
+.cat-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.cat-track {
+  display: flex;
+  gap: 1.5rem;
+  will-change: transform;
+  transform: translate3d(calc(var(--travel, 0) * -1px), 0, 0);
+}
+.cat-card {
+  flex: 0 0 clamp(19rem, 30vw, 30rem);
+}
+
+/* Below lg, on short windows, and whenever motion is unwelcome, the journey
+   is simply a list. */
+@media (max-width: 1023px), (max-height: 719px) {
+  .cat-rail {
+    height: auto !important;
+  }
+  .cat-pin {
+    position: static;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  .cat-track {
+    display: grid;
+    grid-template-columns: 1fr;
+    transform: none !important;
+    will-change: auto;
+  }
+  .cat-card {
+    flex: none;
+  }
+}
+
 /* ---- entrances ---- */
 @keyframes rise {
   from {
@@ -261,6 +371,34 @@ body {
   }
   .skip-link {
     transition: none;
+  }
+  .entry,
+  .char {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .nav-shell {
+    transition: none;
+  }
+  .nav-shell[data-hidden="true"] {
+    transform: none;
+  }
+  .cat-rail {
+    height: auto !important;
+  }
+  .cat-pin {
+    position: static;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  .cat-track {
+    display: grid;
+    grid-template-columns: 1fr;
+    transform: none !important;
+    will-change: auto;
   }
 }
 
