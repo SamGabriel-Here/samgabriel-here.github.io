@@ -2,173 +2,162 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/* ------------------------------------------------------------------ */
-/*  Content                                                            */
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ *  Content — the working catalogue                                    *
+ * ------------------------------------------------------------------ */
 
-const navItems = [
-  { id: "about", label: "Home" },
-  { id: "work", label: "Work" },
+const nav = [
   { id: "log", label: "Log" },
-  { id: "contact", label: "Contact" },
+  { id: "catalogue", label: "Catalogue" },
+  { id: "instrument", label: "Instrument" },
+  { id: "transmit", label: "Transmit" },
 ];
 
-const roles = [
-  "ML Developer",
-  "GPU Simulation",
-  "Full-Stack Developer",
-  "Desktop Apps",
-  "AI Enthusiast",
-  "Always Learning",
-];
-
-type Project = {
-  code: string;
-  tag: string;
-  title: string;
-  subtitle: string;
-  detail: string;
+type Obj = {
+  sg: string; // catalogue designation
+  name: string;
+  type: string; // "object type"
+  blurb: string;
+  instrument: string; // tech
+  date: string;
   live?: string;
-  source?: string;
+  source: string;
   media?: string;
   thumb?: string;
-  accent: string; // rgb triplet
 };
 
-const projects: Project[] = [
+// Two brightest objects — shown as full observation plates.
+const plates: Obj[] = [
   {
-    code: "TX-01",
-    tag: "CUDA C++",
-    title: "nbodyssey",
-    subtitle:
-      "GPU galaxy-collision simulator. A Barnes-Hut tree code clocked 176× faster than brute force at one million particles on a Tesla T4.",
-    detail: "CUDA C++ · C++17 · CMake",
+    sg: "SG-1",
+    name: "nbodyssey",
+    type: "N-body simulation",
+    blurb:
+      "A GPU galaxy-collision simulator. The Barnes-Hut tree code ran 176× faster than brute force at one million particles on a single Tesla T4.",
+    instrument: "CUDA C++ · C++17 · CMake",
+    date: "Jul 2026",
     source: "https://github.com/SamGabriel-Here/nbodyssey",
     media: "/nbodyssey.mp4",
-    accent: "37,99,235",
   },
   {
-    code: "TX-02",
-    tag: "Desktop App",
-    title: "NovaSky",
-    subtitle:
-      "A desktop planetarium that draws the real sky above you — 8,900+ naked-eye stars, every constellation, the planets, deep-sky objects, even black holes, plus a time machine that runs the sky forward. Works fully offline.",
-    detail: "TypeScript · Desktop · Astronomy",
+    sg: "SG-2",
+    name: "NovaSky",
+    type: "Desktop planetarium",
+    blurb:
+      "The real sky above you, on any date, fully offline. 8,900+ naked-eye stars, every constellation, the planets, deep-sky objects, black holes, and a time machine that runs the sky forward.",
+    instrument: "TypeScript · Desktop · Astronomy",
+    date: "Aug 2026",
     source: "https://github.com/SamGabriel-Here/NovaSky",
     thumb: "/novasky.jpg",
-    accent: "34,211,238",
   },
+];
+
+// The rest of the catalogue — a working index.
+const catalogue: Obj[] = [
   {
-    code: "TX-03",
-    tag: "Web App",
-    title: "Celestial",
-    subtitle:
-      "A compact weather dashboard — current conditions, hourly outlook, five-day forecast, daylight and air quality. Vanilla ES modules, no framework, behind a secure serverless API proxy.",
-    detail: "JavaScript · Vercel · OpenWeather",
+    sg: "SG-3",
+    name: "Celestial",
+    type: "Web instrument",
+    blurb:
+      "A weather dashboard — current conditions, hourly and five-day outlook, daylight and air quality — behind a secure serverless proxy.",
+    instrument: "JavaScript · Vercel",
+    date: "Aug 2026",
     live: "https://celestial-tan.vercel.app",
     source: "https://github.com/SamGabriel-Here/celestial",
     thumb: "/celestial.jpg",
-    accent: "56,189,248",
   },
   {
-    code: "TX-04",
-    tag: "Machine Learning",
-    title: "NestWorth",
-    subtitle: "House-price prediction across five Indian metros.",
-    detail: "Python · XGBoost · Streamlit",
+    sg: "SG-4",
+    name: "NestWorth",
+    type: "Regression model",
+    blurb: "House-price prediction across five Indian metros.",
+    instrument: "Python · XGBoost · Streamlit",
+    date: "Jul 2026",
     live: "https://nestworth.streamlit.app",
     source: "https://github.com/SamGabriel-Here/nestworth",
     thumb: "/nestworth.jpg",
-    accent: "59,130,246",
   },
   {
-    code: "TX-05",
-    tag: "Deep Learning",
-    title: "PapVision",
-    subtitle:
-      "Cervical-cytology image classifier — MobileNetV3 fine-tuned across four Pap-smear classes, gated so low-confidence slides abstain instead of guessing. A research and learning project, not a diagnostic tool.",
-    detail: "PyTorch · MobileNetV3 · Flask",
+    sg: "SG-5",
+    name: "PapVision",
+    type: "Vision classifier",
+    blurb:
+      "A cervical-cytology classifier gated to abstain on low-confidence slides. A research and learning project, not a diagnostic tool.",
+    instrument: "PyTorch · MobileNetV3 · Flask",
+    date: "Aug 2026",
     source: "https://github.com/SamGabriel-Here/pap-vision",
     thumb: "/papvision.jpg",
-    accent: "139,92,246",
   },
   {
-    code: "TX-06",
-    tag: "Machine Learning",
-    title: "Nextern",
-    subtitle:
-      "Explainable internship recommender — matches students to companies by skill, coaches the gaps it finds, and reads a resume with an AI copilot.",
-    detail: "Python · scikit-learn · Flask · Gemini",
+    sg: "SG-6",
+    name: "Nextern",
+    type: "Recommender",
+    blurb:
+      "Matches students to internships by skill, coaches the gaps it finds, and reads a resume with an AI copilot.",
+    instrument: "Python · scikit-learn · Gemini",
+    date: "Jul 2026",
     live: "https://getnextern.onrender.com",
     source: "https://github.com/SamGabriel-Here/Internship-Allocator",
     thumb: "/nextern.jpg",
-    accent: "168,85,247",
   },
   {
-    code: "TX-07",
-    tag: "Developer Tools",
-    title: "GitRep",
-    subtitle:
-      "Scores any public GitHub repo's README and hands back honest, actionable feedback.",
-    detail: "React · Vite · FastAPI · GitHub API",
+    sg: "SG-7",
+    name: "GitRep",
+    type: "Analyzer",
+    blurb: "Scores any public repo's README and hands back honest, actionable feedback.",
+    instrument: "React · Vite · FastAPI",
+    date: "Jul 2026",
     live: "https://git-rep.onrender.com",
     source: "https://github.com/SamGabriel-Here/GitRep",
     thumb: "/gitrep.jpg",
-    accent: "192,132,252",
   },
   {
-    code: "TX-08",
-    tag: "Flutter",
-    title: "ShowRush",
-    subtitle:
-      "Movie-ticket booking app with interactive seat selection and checkout.",
-    detail: "Flutter · Dart · Material 3",
+    sg: "SG-8",
+    name: "ShowRush",
+    type: "Mobile app",
+    blurb: "Movie-ticket booking with an interactive seat map and checkout.",
+    instrument: "Flutter · Dart · Material 3",
+    date: "Jul 2026",
     live: "https://samgabriel-here.github.io/movie-booking-app/",
     source: "https://github.com/SamGabriel-Here/movie-booking-app",
     thumb: "/showrush.jpg",
-    accent: "99,102,241",
   },
 ];
 
-const stats = [
-  { target: 8, suffix: "", pad: 2, label: "Projects Shipped", color: "var(--blue)" },
-  { target: 9, suffix: "", pad: 2, label: "Languages Spoken", color: "var(--violet)" },
-  { target: 176, suffix: "×", pad: 0, label: "Peak GPU Speedup", color: "var(--purple)" },
+const toolkit = [
+  { k: "Languages", v: "Python, C, C++, CUDA C++, TypeScript, Java, SQL, Dart" },
+  { k: "ML & data", v: "PyTorch, scikit-learn, XGBoost, Pandas, Streamlit" },
+  { k: "Web", v: "React, Next.js, FastAPI, Flask, Tailwind, Flutter" },
+  { k: "Data stores", v: "MySQL, MongoDB" },
+  { k: "Tooling", v: "Git, GitHub, VS Code, CMake" },
 ];
 
-const internship = {
-  title: "InternPe",
-  role: "Web Development Intern",
-  subtitle:
-    "Built responsive web interfaces with HTML, CSS, and JavaScript in a project-based internship.",
-  detail: "Jul 2025 – Aug 2025 · Remote",
-};
-
-const stack = [
-  { category: "ML & Data", items: ["Python", "PyTorch", "Pandas", "scikit-learn", "XGBoost", "Streamlit"] },
-  { category: "Frontend", items: ["React", "Next.js", "Tailwind", "Flutter", "JavaScript"] },
-  { category: "Backend", items: ["FastAPI", "Flask", "WordPress"] },
-  { category: "Languages", items: ["C", "C++", "CUDA C++", "TypeScript", "Java", "SQL", "Dart"] },
-  { category: "Data", items: ["MongoDB", "MySQL"] },
-  { category: "Tools", items: ["Git", "GitHub", "VS Code", "Prompt Engineering"] },
-];
-
-const marqueeTech = stack.flatMap((g) => g.items);
-
-const education = [
-  { title: "B.Tech", school: "Prestige Institute of Engineering Management & Research", detail: "Computer Science & Engineering", place: "Indore, MP" },
-  { title: "12th", school: "Holy Family Convent School", detail: "CBSE", place: "Indore, MP" },
-  { title: "10th", school: "Holy Family Convent School", detail: "CBSE", place: "Indore, MP" },
+// A real sequence — so it is drawn as a timeline.
+const record = [
+  {
+    when: "2022 — 2026",
+    what: "B.Tech, Computer Science & Engineering",
+    where: "Prestige Institute of Engineering Management & Research · Indore",
+  },
+  {
+    when: "Jul — Aug 2025",
+    what: "Web Development Intern",
+    where: "InternPe · Remote — built responsive interfaces in HTML, CSS, and JavaScript",
+  },
+  {
+    when: "2020 — 2022",
+    what: "Senior Secondary, CBSE",
+    where: "Holy Family Convent School · Indore",
+  },
 ];
 
 const email = "samgabrielofficial@gmail.com";
 const github = "https://github.com/SamGabriel-Here";
 const linkedin = "https://www.linkedin.com/in/samgabrielofficially/";
 
-/* ------------------------------------------------------------------ */
-/*  Motion helpers — all pointer-driven motion is gated to fine        */
-/*  pointers with motion allowed, so touch + reduced-motion opt out.   */
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ *  Motion helpers — pointer motion gated to fine pointer + motion-ok  *
+ * ------------------------------------------------------------------ */
 
 function canHover() {
   return (
@@ -178,7 +167,6 @@ function canHover() {
   );
 }
 
-// Buttons that lean toward the cursor while hovered.
 function useMagnetic<T extends HTMLElement>(strength = 0.3) {
   const ref = useRef<T>(null);
   const on = useRef(false);
@@ -197,7 +185,6 @@ function useMagnetic<T extends HTMLElement>(strength = 0.3) {
   return { ref, onMouseMove, onMouseLeave };
 }
 
-// Thin gradient bar that tracks reading progress.
 function ScrollProgress() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -207,8 +194,7 @@ function ScrollProgress() {
       raf = requestAnimationFrame(() => {
         const d = document.documentElement;
         const max = d.scrollHeight - d.clientHeight;
-        const p = max > 0 ? d.scrollTop / max : 0;
-        if (ref.current) ref.current.style.transform = `scaleX(${p.toFixed(4)})`;
+        if (ref.current) ref.current.style.transform = `scaleX(${max > 0 ? (d.scrollTop / max).toFixed(4) : 0})`;
       });
     };
     update();
@@ -224,25 +210,20 @@ function ScrollProgress() {
     <div
       aria-hidden
       ref={ref}
-      className="fixed inset-x-0 top-0 z-50 h-[2px] origin-left"
-      style={{
-        transform: "scaleX(0)",
-        background: "linear-gradient(90deg, var(--blue), var(--violet) 55%, var(--purple))",
-        boxShadow: "0 0 12px rgba(99,102,241,0.6)",
-      }}
+      className="fixed inset-x-0 top-0 z-50 h-px origin-left"
+      style={{ transform: "scaleX(0)", background: "var(--amber)" }}
     />
   );
 }
 
-// Soft glow that trails the cursor — ambient depth, not a cursor replacement.
 function CursorGlow() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!canHover()) return;
     const el = ref.current;
     if (!el) return;
-    let tx = window.innerWidth / 2;
-    let ty = window.innerHeight / 2;
+    let tx = innerWidth / 2;
+    let ty = innerHeight / 2;
     let x = tx;
     let y = ty;
     let shown = false;
@@ -258,7 +239,7 @@ function CursorGlow() {
     const loop = () => {
       x += (tx - x) * 0.12;
       y += (ty - y) * 0.12;
-      el.style.transform = `translate3d(${(x - 170).toFixed(1)}px, ${(y - 170).toFixed(1)}px, 0)`;
+      el.style.transform = `translate3d(${(x - 150).toFixed(1)}px, ${(y - 150).toFixed(1)}px, 0)`;
       raf = requestAnimationFrame(loop);
     };
     window.addEventListener("pointermove", move, { passive: true });
@@ -272,10 +253,9 @@ function CursorGlow() {
     <div
       aria-hidden
       ref={ref}
-      className="pointer-events-none fixed left-0 top-0 z-20 h-[340px] w-[340px] rounded-full opacity-0"
+      className="pointer-events-none fixed left-0 top-0 z-20 h-[300px] w-[300px] rounded-full opacity-0"
       style={{
-        background:
-          "radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(59,130,246,0.06) 35%, transparent 62%)",
+        background: "radial-gradient(circle, rgba(255,180,84,0.09) 0%, transparent 62%)",
         mixBlendMode: "screen",
         transition: "opacity 0.6s ease",
       }}
@@ -283,83 +263,57 @@ function CursorGlow() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Starfield — crisp parallax depth, slow drift, rare shooting stars  */
-/* ------------------------------------------------------------------ */
+/* The star chart: cool field, one amber guide star, pointer + scroll parallax */
+type Star = { x: number; y: number; d: number; s: number; b: number; tw: number; ph: number; tint: string };
 
-type Star = {
-  x: number;
-  y: number;
-  depth: number;
-  size: number;
-  base: number;
-  tw: number;
-  ph: number;
-  tint: string;
-};
+const TINTS = ["238,242,246", "190,214,240", "255,210,150"];
 
-type Streak = {
-  x: number;
-  y: number;
-  len: number;
-  vx: number;
-  vy: number;
-  life: number;
-  max: number;
-};
-
-const STAR_TINTS = ["255,255,255", "191,219,254", "216,180,254"];
-
-function makeStarfield(count: number): Star[] {
-  let seed = 1987;
+function makeStars(n: number): Star[] {
+  let seed = 2113;
   const rand = () => {
     seed = (seed * 1103515245 + 12345) % 2147483648;
     return seed / 2147483648;
   };
-  return Array.from({ length: count }, () => {
-    const depth = rand();
+  return Array.from({ length: n }, () => {
+    const d = rand();
     return {
       x: rand(),
       y: rand(),
-      depth,
-      size: depth > 0.88 ? 2 : 1,
-      base: 0.28 + depth * 0.6,
-      tw: 0.0006 + rand() * 0.0016,
+      d,
+      s: d > 0.9 ? 2 : 1,
+      b: 0.25 + d * 0.6,
+      tw: 0.0006 + rand() * 0.0015,
       ph: rand() * Math.PI * 2,
-      tint: STAR_TINTS[Math.floor(rand() * 3) % 3],
+      tint: TINTS[Math.floor(rand() * 8) % 3 === 2 && rand() > 0.75 ? 2 : Math.floor(rand() * 2)],
     };
   });
 }
 
-function Starfield() {
+function StarChart() {
   const ref = useRef<HTMLCanvasElement>(null);
-
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     let raf = 0;
     let w = 0;
     let h = 0;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-
-    // pointer influence — the field leans a touch toward the cursor
-    let pTargetX = 0;
-    let pTargetY = 0;
-    let pX = 0;
-    let pY = 0;
+    let ptx = 0;
+    let pty = 0;
+    let px = 0;
+    let py = 0;
     const hover = canHover();
     const onPointer = (e: PointerEvent) => {
-      pTargetX = (e.clientX / window.innerWidth - 0.5) * 2;
-      pTargetY = (e.clientY / window.innerHeight - 0.5) * 2;
+      ptx = (e.clientX / innerWidth - 0.5) * 2;
+      pty = (e.clientY / innerHeight - 0.5) * 2;
     };
     if (hover) window.addEventListener("pointermove", onPointer, { passive: true });
 
     const resize = () => {
-      w = window.innerWidth;
-      h = window.innerHeight;
+      w = innerWidth;
+      h = innerHeight;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -367,200 +321,117 @@ function Starfield() {
     resize();
     window.addEventListener("resize", resize);
 
-    const stars = makeStarfield(240);
-    const streaks: Streak[] = [];
-    let nextStreak = 4000 + Math.random() * 9000;
+    const stars = makeStars(210);
+    // one amber guide star, catalogued
+    const guide = { x: 0.78, y: 0.26 };
 
-    const draw = (t: number, dt: number) => {
+    const draw = (t: number) => {
       ctx.clearRect(0, 0, w, h);
       const scroll = window.scrollY;
-      pX += (pTargetX - pX) * 0.05;
-      pY += (pTargetY - pY) * 0.05;
+      px += (ptx - px) * 0.05;
+      py += (pty - py) * 0.05;
 
       for (const s of stars) {
-        const drift = t * 0.0000018 * (0.25 + s.depth);
-        const px = s.x + drift - (pX * (0.006 + s.depth * 0.02));
-        const x = ((px % 1) + 1) % 1;
-        const py = s.y - (scroll * (0.02 + s.depth * 0.07)) / h - (pY * (0.004 + s.depth * 0.014));
-        const y = ((py % 1) + 1) % 1;
-
-        const alpha = s.base * (0.55 + 0.45 * Math.sin(t * s.tw + s.ph));
-        ctx.fillStyle = `rgba(${s.tint},${alpha.toFixed(3)})`;
-        ctx.fillRect(Math.round(x * w), Math.round(y * h), s.size, s.size);
-
-        if (s.depth > 0.955) {
-          ctx.fillStyle = `rgba(${s.tint},${(alpha * 0.16).toFixed(3)})`;
-          ctx.fillRect(Math.round(x * w) - 1, Math.round(y * h) - 1, s.size + 2, s.size + 2);
-        }
+        const drift = t * 0.0000016 * (0.25 + s.d);
+        const x = (((s.x + drift - px * (0.006 + s.d * 0.02)) % 1) + 1) % 1;
+        const yy = s.y - (scroll * (0.02 + s.d * 0.06)) / h - py * (0.004 + s.d * 0.012);
+        const y = ((yy % 1) + 1) % 1;
+        const a = s.b * (0.55 + 0.45 * Math.sin(t * s.tw + s.ph));
+        ctx.fillStyle = `rgba(${s.tint},${a.toFixed(3)})`;
+        ctx.fillRect(Math.round(x * w), Math.round(y * h), s.s, s.s);
       }
 
-      nextStreak -= dt;
-      if (nextStreak <= 0) {
-        nextStreak = 7000 + Math.random() * 16000;
-        const sx = Math.random() * w * 0.7;
-        const sy = Math.random() * h * 0.5;
-        const sp = 0.42 + Math.random() * 0.3;
-        streaks.push({
-          x: sx,
-          y: sy,
-          len: 90 + Math.random() * 130,
-          vx: sp,
-          vy: sp * (0.32 + Math.random() * 0.3),
-          life: 0,
-          max: 950,
-        });
-      }
-
-      for (let i = streaks.length - 1; i >= 0; i--) {
-        const st = streaks[i];
-        st.life += dt;
-        if (st.life > st.max) {
-          streaks.splice(i, 1);
-          continue;
-        }
-        st.x += st.vx * dt;
-        st.y += st.vy * dt;
-        const p = st.life / st.max;
-        const fade = Math.sin(p * Math.PI);
-        const tailX = st.x - st.vx * st.len;
-        const tailY = st.y - st.vy * st.len;
-        const grad = ctx.createLinearGradient(st.x, st.y, tailX, tailY);
-        grad.addColorStop(0, `rgba(226,232,240,${(0.5 * fade).toFixed(3)})`);
-        grad.addColorStop(1, "rgba(226,232,240,0)");
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(st.x, st.y);
-        ctx.lineTo(tailX, tailY);
-        ctx.stroke();
-      }
+      // guide star — amber, haloed, parallaxing with the near field
+      const gx = (guide.x - px * 0.03) * w;
+      const gy = (guide.y - (scroll * 0.05) / h - py * 0.02) * h;
+      const pulse = 0.6 + 0.4 * Math.sin(t * 0.0022);
+      const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 26);
+      grad.addColorStop(0, `rgba(255,180,84,${(0.5 * pulse).toFixed(3)})`);
+      grad.addColorStop(1, "rgba(255,180,84,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(gx - 26, gy - 26, 52, 52);
+      ctx.fillStyle = `rgba(255,200,130,${(0.85 * pulse).toFixed(3)})`;
+      ctx.fillRect(Math.round(gx), Math.round(gy), 2, 2);
     };
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
     if (reduced) {
-      draw(0, 0);
+      draw(0);
     } else {
-      const frameGap = 1000 / 30;
+      const gap = 1000 / 30;
       let last = 0;
-      let prev = 0;
-
       const loop = (t: number) => {
         raf = requestAnimationFrame(loop);
-        if (t - last < frameGap) return;
-        const dt = prev ? Math.min(t - prev, 100) : frameGap;
+        if (t - last < gap) return;
         last = t;
-        prev = t;
-        draw(t, dt);
+        draw(t);
       };
-
-      const onVisibility = () => {
+      const onVis = () => {
         if (document.hidden) {
           cancelAnimationFrame(raf);
           raf = 0;
         } else if (!raf) {
           last = 0;
-          prev = 0;
           raf = requestAnimationFrame(loop);
         }
       };
-      document.addEventListener("visibilitychange", onVisibility);
+      document.addEventListener("visibilitychange", onVis);
       raf = requestAnimationFrame(loop);
-
       return () => {
         cancelAnimationFrame(raf);
         window.removeEventListener("resize", resize);
         window.removeEventListener("pointermove", onPointer);
-        document.removeEventListener("visibilitychange", onVisibility);
+        document.removeEventListener("visibilitychange", onVis);
       };
     }
-
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointer);
     };
   }, []);
-
-  return (
-    <canvas
-      ref={ref}
-      aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 opacity-90"
-    />
-  );
+  return <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 -z-10" />;
 }
 
-// Original generated cosmos loop, drifting beneath everything.
-// The film only plays while the visitor interacts — the cosmos moves when you do.
+function GridField() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => ref.current?.classList.add("drawn"));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  return <div ref={ref} aria-hidden className="grid-field" />;
+}
+
 function BackgroundLoop() {
   const vref = useRef<HTMLVideoElement>(null);
-
   useEffect(() => {
     const v = vref.current;
     if (!v) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const rest = () => v.pause();
     const onActivity = () => {
       if (v.paused) v.play().catch(() => {});
       clearTimeout(timer);
-      timer = setTimeout(rest, 1800);
+      timer = setTimeout(() => v.pause(), 1600);
     };
-
-    const events: (keyof WindowEventMap)[] = [
-      "scroll",
-      "wheel",
-      "mousemove",
-      "pointerdown",
-      "keydown",
-      "touchstart",
-      "touchmove",
-    ];
-    for (const e of events) window.addEventListener(e, onActivity, { passive: true });
-
+    const evs: (keyof WindowEventMap)[] = ["scroll", "wheel", "mousemove", "pointerdown", "keydown", "touchmove"];
+    for (const e of evs) window.addEventListener(e, onActivity, { passive: true });
     return () => {
-      for (const e of events) window.removeEventListener(e, onActivity);
+      for (const e of evs) window.removeEventListener(e, onActivity);
       clearTimeout(timer);
     };
   }, []);
-
   return (
     <div aria-hidden className="bg-loop pointer-events-none fixed inset-0 -z-20">
-      <video
-        ref={vref}
-        src="/cosmic-loop.mp4"
-        poster="/cosmic-loop.jpg"
-        className="h-full w-full object-cover opacity-55"
-        loop
-        muted
-        playsInline
-        preload="metadata"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(120% 100% at 50% 30%, rgba(3,3,9,0.3) 0%, rgba(3,3,9,0.72) 100%)",
-        }}
-      />
+      <video ref={vref} src="/cosmic-loop.mp4" poster="/cosmic-loop.jpg" className="h-full w-full object-cover opacity-30" loop muted playsInline preload="metadata" />
+      <div className="absolute inset-0" style={{ background: "radial-gradient(130% 100% at 50% 20%, rgba(8,10,16,0.55) 0%, rgba(8,10,16,0.9) 100%)" }} />
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Small building blocks                                             */
-/* ------------------------------------------------------------------ */
-
-function Kicker({ children, color = "var(--blue)" }: { children: React.ReactNode; color?: string }) {
-  return (
-    <p className="mono flex items-center gap-3 text-[10px] sm:text-xs" style={{ color }}>
-      <span className="inline-block h-px w-8" style={{ background: color }} />
-      {children}
-    </p>
-  );
-}
+/* ------------------------------------------------------------------ *
+ *  Chrome                                                             *
+ * ------------------------------------------------------------------ */
 
 function Clock() {
   const [t, setT] = useState("--:--:--");
@@ -573,160 +444,56 @@ function Clock() {
   return <span>{t}</span>;
 }
 
-function Counter({ target, suffix, pad }: { target: number; suffix: string; pad: number }) {
-  const [val, setVal] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-
+function Header() {
+  const [active, setActive] = useState("log");
+  const cta = useMagnetic<HTMLAnchorElement>(0.4);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
     const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) setStarted(true);
-      },
-      { threshold: 0.4 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!started) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVal(target);
-      return;
-    }
-    let raf = 0;
-    const dur = 1500;
-    const start = performance.now();
-    const tick = (t: number) => {
-      const p = Math.min((t - start) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setVal(Math.round(eased * target));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [started, target]);
-
-  const shown = pad ? String(val).padStart(pad, "0") : String(val);
-  return (
-    <span ref={ref}>
-      {shown}
-      {suffix}
-    </span>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Chrome: top bar + corner telemetry                               */
-/* ------------------------------------------------------------------ */
-
-function TopBar() {
-  const [active, setActive] = useState("about");
-  const transmit = useMagnetic<HTMLAnchorElement>(0.45);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActive(entry.target.id);
-        }
-      },
+      (es) => es.forEach((e) => e.isIntersecting && setActive(e.target.id)),
       { rootMargin: "-45% 0px -50% 0px" },
     );
-    for (const item of navItems) {
-      const el = document.getElementById(item.id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
+    nav.forEach((n) => {
+      const el = document.getElementById(n.id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
   }, []);
-
   return (
-    <header className="fixed inset-x-0 top-0 z-40">
-      <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#03040790] px-5 py-3 backdrop-blur-md sm:px-8">
-        <a href="#about" className="group flex items-center gap-2.5">
-          <span className="text-blue-400 transition-transform duration-500 group-hover:rotate-180">✳</span>
-          <span className="mono text-[11px] text-neutral-200 sm:text-xs">Sam Gabriel</span>
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--line)] bg-[#080a10]/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
+        <a href="#log" className="mono text-[12px] text-[color:var(--starlight)]">
+          Sam&nbsp;Gabriel
         </a>
-        <nav className="hidden items-center gap-1 md:flex">
-          {navItems.map((item) => (
+        <nav className="hidden items-center gap-7 md:flex">
+          {nav.map((n) => (
             <a
-              key={item.id}
-              href={`#${item.id}`}
-              className={`mono rounded px-3 py-1.5 text-[10px] transition-colors ${
-                active === item.id ? "text-blue-300" : "text-neutral-500 hover:text-neutral-200"
-              }`}
+              key={n.id}
+              href={`#${n.id}`}
+              className="mono text-[11px] transition-colors"
+              style={{ color: active === n.id ? "var(--amber)" : "var(--dim)" }}
             >
-              {item.label}
+              {n.label}
             </a>
           ))}
         </nav>
         <a
-          href="#contact"
-          ref={transmit.ref}
-          onMouseMove={transmit.onMouseMove}
-          onMouseLeave={transmit.onMouseLeave}
-          className="mono flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-1.5 text-[10px] text-neutral-300 transition-colors hover:border-blue-400/50 hover:text-blue-300 sm:text-xs"
-          style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), color 0.2s, border-color 0.2s" }}
+          href="#transmit"
+          ref={cta.ref}
+          onMouseMove={cta.onMouseMove}
+          onMouseLeave={cta.onMouseLeave}
+          className="mono rounded-sm border border-[color:var(--amber)]/40 px-3.5 py-1.5 text-[11px] text-[color:var(--amber)] transition-colors hover:bg-[color:var(--amber)] hover:text-[#1a1206]"
+          style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s, color 0.2s" }}
         >
-          Transmit <span aria-hidden>↗</span>
+          Transmit
         </a>
       </div>
     </header>
   );
 }
 
-const chapters = [
-  { id: "about", label: "Prologue — The Observable Sam" },
-  { id: "work", label: "Chapter 01 — Selected Works" },
-  { id: "numbers", label: "Chapter 02 — By the Numbers" },
-  { id: "log", label: "Chapter 03 — Field Notes" },
-  { id: "contact", label: "Final Chapter — Open Channel" },
-];
-
-function CaptionBar() {
-  const [chapter, setChapter] = useState(chapters[0].label);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const c = chapters.find((ch) => ch.id === entry.target.id);
-            if (c) setChapter(c.label);
-          }
-        }
-      },
-      { rootMargin: "-45% 0px -50% 0px" },
-    );
-    for (const c of chapters) {
-      const el = document.getElementById(c.id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.07] bg-black/80 backdrop-blur-md">
-      <div className="mx-auto flex h-10 w-full max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
-        <span className="mono hidden text-[9px] text-neutral-600 lg:block">
-          Indore · 22.72°N / 75.86°E
-        </span>
-        <span className="mono text-[9px] text-neutral-300 sm:text-[10px]">{chapter}</span>
-        <span className="mono hidden items-center gap-2 text-[9px] text-neutral-600 lg:flex">
-          <span className="dot-live inline-block h-1.5 w-1.5 rounded-full bg-blue-400" />
-          <Clock /> LT
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Sections                                                          */
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ *  Sections                                                           *
+ * ------------------------------------------------------------------ */
 
 function Hero() {
   const secRef = useRef<HTMLElement>(null);
@@ -734,15 +501,12 @@ function Hero() {
   useEffect(() => {
     on.current = canHover();
   }, []);
-
   const onMove = (e: React.PointerEvent) => {
     const el = secRef.current;
     if (!on.current || !el) return;
     const r = el.getBoundingClientRect();
-    const mx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-    const my = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-    el.style.setProperty("--mx", mx.toFixed(3));
-    el.style.setProperty("--my", my.toFixed(3));
+    el.style.setProperty("--mx", ((e.clientX - (r.left + r.width / 2)) / (r.width / 2)).toFixed(3));
+    el.style.setProperty("--my", ((e.clientY - (r.top + r.height / 2)) / (r.height / 2)).toFixed(3));
   };
   const onLeave = () => {
     const el = secRef.current;
@@ -752,229 +516,212 @@ function Hero() {
     }
   };
 
+  const meta = [
+    ["Observer", "Sam Gabriel"],
+    ["Station", "Indore · 22.72°N 75.86°E"],
+    ["Field", "Machine learning, GPU, software"],
+  ];
+
   return (
     <section
-      id="about"
+      id="log"
       ref={secRef}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className="relative flex min-h-screen flex-col justify-center overflow-hidden px-5 pb-28 pt-28 sm:px-10"
+      className="relative flex min-h-[100svh] items-center overflow-hidden px-5 pb-24 pt-28 sm:px-8"
     >
-      {/* electric first-light bloom rising behind the name — leans toward the cursor */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-[-10%] top-[30%] -z-[1] h-[70vmin] w-[90vmin] opacity-70"
-        style={{
-          background:
-            "radial-gradient(50% 50% at 50% 50%, rgba(59,130,246,0.3) 0%, rgba(99,102,241,0.15) 40%, rgba(168,85,247,0.06) 65%, transparent 78%)",
-          filter: "blur(14px)",
-          transform: "translate3d(calc(var(--mx,0) * 30px), calc(var(--my,0) * 30px), 0)",
-          transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
-          willChange: "transform",
-        }}
-      />
+      <div className="mx-auto grid w-full max-w-6xl gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+        {/* left — the log header */}
+        <div>
+          <p className="marker reveal in">Observation Log · Opened 2026</p>
+          <h1
+            className="display reveal in mt-5 text-[clamp(3.2rem,9vw,7rem)] font-medium leading-[0.94] tracking-[-0.02em] text-[color:var(--starlight)]"
+            style={{
+              transform: "translate3d(calc(var(--mx,0)*-6px), calc(var(--my,0)*-4px), 0)",
+              transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
+            }}
+          >
+            Sam Gabriel
+          </h1>
+          <p className="reveal in mt-7 max-w-[54ch] text-[17px] leading-relaxed text-[color:var(--dim)]">
+            Machine-learning and software engineer. I take hard problems — GPU
+            physics, the night sky, messy data — and build instruments that make
+            them legible.
+          </p>
 
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="reveal in mb-6">
-          <Kicker>ML · Software · Generative</Kicker>
+          <dl className="reveal in mono mt-10 grid max-w-lg grid-cols-1 gap-y-3 text-[12px] sm:grid-cols-[110px_1fr]">
+            {meta.map(([k, v]) => (
+              <div key={k} className="contents">
+                <dt className="text-[color:var(--faint)]">{k}</dt>
+                <dd className="text-[color:var(--starlight)]">{v}</dd>
+              </div>
+            ))}
+            <dt className="text-[color:var(--faint)]">Status</dt>
+            <dd className="flex items-center gap-2 text-[color:var(--amber)]">
+              <span className="guide-star inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--amber)]" />
+              Open to work
+            </dd>
+          </dl>
         </div>
 
-        <h1
-          className="reveal in font-display text-[19vw] leading-[0.85] text-neutral-50 sm:text-[15vw] lg:text-[13rem]"
+        {/* right — a plate: the brightest object */}
+        <a
+          href={plates[0].source}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="reveal in group relative block overflow-hidden border border-[color:var(--line-strong)]"
           style={{
-            transform: "translate3d(calc(var(--mx,0) * -12px), calc(var(--my,0) * -8px), 0)",
+            transform: "translate3d(calc(var(--mx,0)*8px), calc(var(--my,0)*6px), 0)",
             transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
-            willChange: "transform",
           }}
         >
-          <span className="block">Sam</span>
-          <span className="block text-hollow">Gabriel</span>
-        </h1>
-
-        <div className="mt-10 flex flex-col gap-8 border-t border-white/[0.07] pt-8 sm:flex-row sm:items-end sm:justify-between">
-          <p className="reveal in max-w-md font-grotesk text-base leading-relaxed text-neutral-400">
-            I build things with data and code — GPU simulations, machine-learning
-            apps, and whatever else catches my curiosity.
-          </p>
-          <div className="mono flex items-center gap-3 text-[10px] text-neutral-600">
-            <span>Scroll to traverse</span>
-            <span className="inline-block h-8 w-px animate-pulse bg-gradient-to-b from-blue-400 to-transparent" />
+          <div className="relative aspect-[4/3] overflow-hidden">
+            <video
+              src={plates[0].media}
+              poster={plates[0].media?.replace(/\.mp4$/, ".jpg")}
+              className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+            />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 55%, rgba(8,10,16,0.85) 100%)" }} />
           </div>
-        </div>
+          <div className="flex items-baseline justify-between border-t border-[color:var(--line)] px-4 py-3">
+            <span className="mono text-[11px] text-[color:var(--amber)]">{plates[0].sg}</span>
+            <span className="mono text-[11px] text-[color:var(--dim)]">{plates[0].type}</span>
+          </div>
+        </a>
       </div>
 
-      {/* roles ticker */}
-      <div className="absolute inset-x-0 bottom-10 border-t border-white/[0.06] py-4 [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
-        <div className="flex w-max animate-[marquee_28s_linear_infinite]">
-          {[...roles, ...roles, ...roles].map((role, i) => (
-            <span key={i} className="mono mx-6 whitespace-nowrap text-[11px] text-neutral-600">
-              {role}
-              <span className="ml-6 text-blue-400/50">✳</span>
-            </span>
-          ))}
-        </div>
-      </div>
+      <p className="mono absolute inset-x-0 bottom-6 mx-auto max-w-6xl px-5 text-[10px] text-[color:var(--faint)] sm:px-8">
+        Scroll to open the catalogue ↓
+      </p>
     </section>
   );
 }
 
-function ProjectCard({ p, featured }: { p: Project; featured?: boolean }) {
-  const primaryHref = p.live || p.source;
+function Plate({ o }: { o: Obj }) {
   const ref = useRef<HTMLAnchorElement>(null);
-  const glare = useRef<HTMLDivElement>(null);
   const on = useRef(false);
-
   useEffect(() => {
     on.current = canHover();
   }, []);
-
-  const enter = () => {
-    if (!on.current || !ref.current) return;
-    ref.current.style.transition = "box-shadow 0.4s, border-color 0.4s";
-    ref.current.style.boxShadow = `0 28px 70px -28px rgba(${p.accent},0.55)`;
-  };
   const move = (e: React.MouseEvent) => {
     const el = ref.current;
     if (!on.current || !el) return;
     const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width;
-    const py = (e.clientY - r.top) / r.height;
-    el.style.transform = `perspective(1100px) rotateX(${((0.5 - py) * 7).toFixed(2)}deg) rotateY(${((px - 0.5) * 9).toFixed(2)}deg) translateY(-6px)`;
-    if (glare.current) {
-      glare.current.style.opacity = "1";
-      glare.current.style.background = `radial-gradient(340px circle at ${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%, rgba(${p.accent},0.20), transparent 60%)`;
-    }
+    const rx = ((0.5 - (e.clientY - r.top) / r.height) * 5).toFixed(2);
+    const ry = (((e.clientX - r.left) / r.width - 0.5) * 6).toFixed(2);
+    el.style.transition = "box-shadow 0.4s, border-color 0.4s";
+    el.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
   };
   const leave = () => {
     const el = ref.current;
     if (!el) return;
     el.style.transition = "transform 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s, border-color 0.4s";
     el.style.transform = "";
-    el.style.boxShadow = "0 0 0 rgba(0,0,0,0)";
-    if (glare.current) glare.current.style.opacity = "0";
   };
-
+  const href = o.live || o.source;
   return (
     <a
-      href={primaryHref}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       ref={ref}
-      onMouseEnter={enter}
       onMouseMove={move}
       onMouseLeave={leave}
-      className={`reveal group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-950/40 hover:border-white/20 ${
-        featured ? "sm:col-span-2 sm:flex-row" : ""
-      }`}
+      className="reveal group relative block overflow-hidden border border-[color:var(--line-strong)] hover:border-[color:var(--amber)]/45"
       style={{ transformStyle: "preserve-3d" }}
     >
-      {/* cursor-tracked glare */}
-      <div
-        ref={glare}
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-[2] opacity-0"
-        style={{ transition: "opacity 0.3s ease" }}
-      />
-
-      {/* media */}
-      <div
-        className={`relative overflow-hidden ${
-          featured ? "aspect-video sm:aspect-auto sm:w-3/5" : "aspect-[16/10]"
-        }`}
-      >
-        {p.media ? (
-          <video
-            src={p.media}
-            poster={p.media.replace(/\.mp4$/, ".jpg")}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-          />
-        ) : p.thumb ? (
+      <div className="relative aspect-[16/10] overflow-hidden">
+        {o.media ? (
+          <video src={o.media} poster={o.media.replace(/\.mp4$/, ".jpg")} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" autoPlay loop muted playsInline preload="metadata" />
+        ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={p.thumb}
-            alt={`${p.title} preview`}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : null}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(180deg, transparent 40%, #03040799 80%, #030407 100%), radial-gradient(120% 80% at 50% 120%, rgba(${p.accent},0.28), transparent 60%)`,
-          }}
-        />
-        <div className="mono absolute left-3 top-3 flex items-center gap-2 text-[9px] text-neutral-300">
-          <span
-            className="rounded px-1.5 py-0.5"
-            style={{ background: `rgba(${p.accent},0.16)`, color: `rgb(${p.accent})` }}
-          >
-            {p.code}
-          </span>
-          <span className="text-neutral-500">{p.tag}</span>
+          <img src={o.thumb} alt={`${o.name} — ${o.type}`} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+        )}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 45%, rgba(8,10,16,0.92) 100%)" }} />
+        <div className="mono absolute left-3 top-3 flex items-center gap-2 text-[10px]">
+          <span className="bg-[color:var(--amber)] px-1.5 py-0.5 text-[#1a1206]">{o.sg}</span>
+          <span className="text-[color:var(--dim)]">{o.type}</span>
         </div>
       </div>
-
-      {/* body */}
-      <div className={`relative z-[3] flex flex-1 flex-col p-5 ${featured ? "sm:justify-center sm:p-8" : ""}`}>
-        <h3
-          className={`font-display text-neutral-50 ${featured ? "text-4xl sm:text-6xl" : "text-2xl"}`}
-        >
-          {p.title}
-        </h3>
-        <p
-          className={`mt-3 font-grotesk leading-relaxed text-neutral-400 ${
-            featured ? "max-w-md text-sm sm:text-base" : "text-sm"
-          }`}
-        >
-          {p.subtitle}
-        </p>
-        <p className="mono mt-3 text-[9px] text-neutral-600">{p.detail}</p>
-        <div className="mono mt-auto flex items-center gap-4 pt-4 text-[10px]">
-          <span
-            className="flex items-center gap-1.5 transition-colors"
-            style={{ color: `rgb(${p.accent})` }}
-          >
-            View {p.live ? "live" : "case"}
-            <span className="transition-transform group-hover:translate-x-1">→</span>
+      <div className="p-5 sm:p-6">
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="display text-3xl font-medium text-[color:var(--starlight)] sm:text-4xl">{o.name}</h3>
+          <span className="mono shrink-0 text-[10px] text-[color:var(--faint)]">{o.date}</span>
+        </div>
+        <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-[color:var(--dim)]">{o.blurb}</p>
+        <div className="mono mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px]">
+          <span className="text-[color:var(--faint)]">{o.instrument}</span>
+          <span className="ml-auto flex items-center gap-4">
+            {o.live && <span className="text-[color:var(--amber)]">Open instrument</span>}
+            <span className="text-[color:var(--dim)]">Source</span>
           </span>
-          {p.live && p.source && <span className="text-neutral-700">Source ↗</span>}
         </div>
       </div>
     </a>
   );
 }
 
-function Work() {
-  const repos = useMagnetic<HTMLAnchorElement>(0.4);
+function CatalogueRow({ o }: { o: Obj }) {
+  const href = o.live || o.source;
   return (
-    <section id="work" className="relative scroll-mt-16 px-5 py-24 sm:px-10 sm:py-32">
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="reveal">
-          <Kicker>Selected Transmissions</Kicker>
-          <h2 className="mt-4 font-display text-6xl text-neutral-50 sm:text-8xl">Work</h2>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="reveal group grid grid-cols-[64px_1fr_auto] items-center gap-4 border-t border-[color:var(--line)] py-4 transition-colors hover:bg-[color:var(--ground-2)] sm:grid-cols-[72px_minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:gap-6 sm:px-3"
+    >
+      <div className="relative aspect-square w-16 overflow-hidden border border-[color:var(--line)] sm:w-[72px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={o.thumb} alt="" className="h-full w-full object-cover opacity-80 transition-all duration-500 group-hover:scale-110 group-hover:opacity-100" loading="lazy" />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-3">
+          <span className="mono text-[10px] text-[color:var(--amber)]">{o.sg}</span>
+          <h3 className="display truncate text-xl font-medium text-[color:var(--starlight)] transition-colors group-hover:text-[color:var(--amber)]">{o.name}</h3>
         </div>
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((p, i) => (
-            <ProjectCard key={p.title} p={p} featured={i === 0} />
+        <p className="mt-1 truncate text-[13px] text-[color:var(--dim)]">{o.blurb}</p>
+      </div>
+      <p className="mono hidden text-[11px] text-[color:var(--faint)] sm:block">{o.instrument}</p>
+      <span className="mono text-[11px] text-[color:var(--dim)] transition-colors group-hover:text-[color:var(--amber)]">{o.type}</span>
+    </a>
+  );
+}
+
+function Catalogue() {
+  const total = plates.length + catalogue.length;
+  return (
+    <section id="catalogue" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="reveal flex items-end justify-between border-b border-[color:var(--line-strong)] pb-5">
+          <h2 className="display text-4xl font-medium text-[color:var(--starlight)] sm:text-6xl">The Catalogue</h2>
+          <p className="mono text-[11px] text-[color:var(--faint)]">{total} objects observed</p>
+        </div>
+
+        {/* two brightest — full plates */}
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          {plates.map((o) => (
+            <Plate key={o.name} o={o} />
           ))}
         </div>
-        <div className="reveal mt-10 flex justify-center">
-          <a
-            href={github}
-            target="_blank"
-            rel="noopener noreferrer"
-            ref={repos.ref}
-            onMouseMove={repos.onMouseMove}
-            onMouseLeave={repos.onMouseLeave}
-            className="mono rounded-full border border-white/15 px-6 py-3 text-[11px] text-neutral-300 hover:border-blue-400/50 hover:text-blue-300"
-            style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), color 0.2s, border-color 0.2s" }}
-          >
-            All repositories on GitHub ↗
+
+        {/* the index */}
+        <div className="mt-14">
+          <p className="mono mb-1 text-[11px] text-[color:var(--faint)]">Index — SG-3 through SG-8</p>
+          <div>
+            {catalogue.map((o) => (
+              <CatalogueRow key={o.name} o={o} />
+            ))}
+          </div>
+        </div>
+
+        <div className="reveal mt-10">
+          <a href={github} target="_blank" rel="noopener noreferrer" className="mono text-[12px] text-[color:var(--dim)] underline decoration-[color:var(--line-strong)] underline-offset-4 transition-colors hover:text-[color:var(--amber)] hover:decoration-[color:var(--amber)]">
+            Full observation archive on GitHub
           </a>
         </div>
       </div>
@@ -982,259 +729,112 @@ function Work() {
   );
 }
 
-function TechBand() {
+function Instrument() {
   return (
-    <section aria-label="Tech stack" className="relative overflow-hidden border-y border-white/[0.06] py-6">
-      <div className="[mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="marquee-hover flex w-max animate-[marquee_40s_linear_infinite]">
-          {[...marqueeTech, ...marqueeTech].map((t, i) => (
-            <span key={i} className="mx-5 flex items-center gap-5 whitespace-nowrap">
-              <span className="font-display text-2xl text-neutral-400 transition-colors hover:text-neutral-100 sm:text-3xl">
-                {t}
-              </span>
-              <span className="text-violet-400/40">✳</span>
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Numbers() {
-  return (
-    <section id="numbers" className="relative px-5 py-24 sm:px-10 sm:py-32">
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="reveal">
-          <Kicker color="var(--violet)">Mission Log</Kicker>
-          <h2 className="mt-4 font-display text-6xl text-neutral-50 sm:text-8xl">
-            By the Numbers
-          </h2>
-        </div>
-        <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="reveal flex flex-col items-center border-t border-white/[0.08] pt-8 text-center sm:items-start sm:text-left"
-            >
-              <div className="font-display text-7xl sm:text-8xl" style={{ color: s.color }}>
-                <Counter target={s.target} suffix={s.suffix} pad={s.pad} />
+    <section id="instrument" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto grid w-full max-w-6xl gap-16 lg:grid-cols-2">
+        {/* instrument spec */}
+        <div>
+          <h2 className="reveal display text-4xl font-medium text-[color:var(--starlight)] sm:text-5xl">Instrument</h2>
+          <p className="reveal mt-3 max-w-[46ch] text-[15px] leading-relaxed text-[color:var(--dim)]">
+            What I build with. Read it as a spec sheet — the optics, the mount, the software behind the eyepiece.
+          </p>
+          <dl className="reveal mt-8">
+            {toolkit.map((row) => (
+              <div key={row.k} className="grid grid-cols-1 gap-1 border-t border-[color:var(--line)] py-4 sm:grid-cols-[130px_1fr] sm:gap-6">
+                <dt className="mono text-[11px] text-[color:var(--amber)]">{row.k}</dt>
+                <dd className="text-[14px] leading-relaxed text-[color:var(--starlight)]">{row.v}</dd>
               </div>
-              <p className="mono mt-4 text-[11px] text-neutral-500">{s.label}</p>
-            </div>
-          ))}
+            ))}
+          </dl>
+        </div>
+
+        {/* record — a real dated sequence, so: a timeline */}
+        <div>
+          <h2 className="reveal display text-4xl font-medium text-[color:var(--starlight)] sm:text-5xl">Record</h2>
+          <p className="reveal mt-3 max-w-[46ch] text-[15px] leading-relaxed text-[color:var(--dim)]">
+            Where the observing time went.
+          </p>
+          <ol className="reveal mt-8 border-l border-[color:var(--line-strong)]">
+            {record.map((r) => (
+              <li key={r.what} className="relative pb-8 pl-6 last:pb-0">
+                <span className="absolute left-[-4.5px] top-1.5 h-2 w-2 rounded-full bg-[color:var(--amber)]" />
+                <p className="mono text-[11px] text-[color:var(--faint)]">{r.when}</p>
+                <p className="mt-1.5 text-[15px] font-medium text-[color:var(--starlight)]">{r.what}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--dim)]">{r.where}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>
   );
 }
 
-function Log() {
-  return (
-    <section id="log" className="relative scroll-mt-16 px-5 py-24 sm:px-10 sm:py-32">
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="reveal">
-          <Kicker>Field Notes</Kicker>
-          <h2 className="mt-4 font-display text-6xl text-neutral-50 sm:text-8xl">The Log</h2>
-        </div>
-
-        <div className="mt-12 grid gap-10 lg:grid-cols-2">
-          {/* Experience */}
-          <div className="reveal">
-            <p className="mono text-[10px] text-neutral-600">01 / Experience</p>
-            <div className="mt-4 rounded-2xl border border-blue-400/20 bg-blue-950/15 p-6">
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
-                <h3 className="font-grotesk text-lg font-semibold text-neutral-100">
-                  {internship.title}
-                  <span className="ml-2 font-normal text-blue-300">{internship.role}</span>
-                </h3>
-                <p className="mono text-[9px] text-neutral-500 sm:shrink-0 sm:whitespace-nowrap">
-                  {internship.detail}
-                </p>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-400">{internship.subtitle}</p>
-            </div>
-
-            <p className="mono mt-8 text-[10px] text-neutral-600">02 / Toolkit</p>
-            <div className="mt-1 divide-y divide-white/[0.06]">
-              {stack.map((group) => (
-                <div key={group.category} className="flex flex-col gap-2 py-3.5 sm:flex-row sm:gap-4">
-                  <p className="mono w-28 shrink-0 pt-1 text-[10px] text-neutral-500">
-                    {group.category}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.items.map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-300 transition-colors hover:border-violet-400/50 hover:text-violet-200"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Education */}
-          <div className="reveal">
-            <p className="mono text-[10px] text-neutral-600">03 / Education</p>
-            <div className="mt-4 space-y-4">
-              {education.map((item) => (
-                <div
-                  key={item.title + item.detail}
-                  className="rounded-2xl border border-white/[0.08] bg-neutral-950/40 p-6 transition-colors hover:border-violet-400/30"
-                >
-                  <div className="flex items-baseline justify-between gap-3">
-                    <h3 className="font-display text-3xl text-neutral-50">{item.title}</h3>
-                    <p className="mono shrink-0 text-[9px] text-neutral-500">{item.place}</p>
-                  </div>
-                  <p className="mt-2 text-sm text-neutral-300">{item.school}</p>
-                  <p className="mt-1 text-xs text-neutral-500">{item.detail}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Contact() {
+function Transmit() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
-  const [methods, setMethods] = useState<string[]>([]);
-  const send = useMagnetic<HTMLButtonElement>(0.25);
-  const circle = useMagnetic<HTMLAnchorElement>(0.4);
+  const [channels, setChannels] = useState<string[]>([]);
+  const send = useMagnetic<HTMLButtonElement>(0.22);
 
-  const toggleMethod = (method: string) => {
-    setMethods((prev) =>
-      prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method],
-    );
-  };
+  const toggle = (c: string) =>
+    setChannels((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`Hello from ${name || "your website"}`);
-    const contactLine = methods.length
-      ? `\n\nPreferred contact method: ${methods.join(", ")}`
-      : "";
-    const body = encodeURIComponent(message + contactLine);
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    const subject = encodeURIComponent(`Signal from ${name || "the field"}`);
+    const line = channels.length ? `\n\nPreferred channel: ${channels.join(", ")}` : "";
+    window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(message + line)}`;
   };
+
+  const fieldCls =
+    "mt-2 w-full border border-[color:var(--line-strong)] bg-transparent px-3.5 py-2.5 text-[14px] text-[color:var(--starlight)] outline-none placeholder:text-[color:var(--faint)] focus:border-[color:var(--amber)]";
 
   return (
-    <section id="contact" className="relative scroll-mt-16 overflow-hidden px-5 py-28 sm:px-10 sm:py-36">
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="reveal text-center">
-          <div className="flex justify-center">
-            <Kicker color="var(--violet)">Open Channel</Kicker>
-          </div>
-          <h2 className="mt-6 font-display text-5xl leading-[0.9] text-neutral-50 sm:text-8xl">
-            <span className="block">Make Contact</span>
-            <span
-              className="block"
-              style={{
-                background:
-                  "linear-gradient(90deg, var(--blue), var(--violet) 50%, var(--purple))",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              Across the Void
-            </span>
+    <section id="transmit" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto grid w-full max-w-6xl gap-12 border-t border-[color:var(--line-strong)] pt-14 md:grid-cols-[1fr_1fr] md:items-start">
+        <div>
+          <h2 className="reveal display text-4xl font-medium leading-[1.02] text-[color:var(--starlight)] sm:text-6xl">
+            Open a channel
           </h2>
-          <p className="mx-auto mt-6 max-w-md font-grotesk text-neutral-400">
-            Have a project, a role, or a wild idea? Send a transmission — I read
-            every signal.
+          <p className="reveal mt-5 max-w-[42ch] text-[16px] leading-relaxed text-[color:var(--dim)]">
+            A project, a role, or a question about the catalogue — send a signal and I&apos;ll answer.
           </p>
-        </div>
-
-        <div className="mx-auto mt-14 grid max-w-3xl gap-8 md:grid-cols-[1fr_auto] md:items-center">
-          <form
-            onSubmit={handleSubmit}
-            className="reveal rounded-2xl border border-white/[0.08] bg-neutral-950/50 p-7 backdrop-blur"
-          >
-            <label className="mono block text-[10px] text-neutral-400" htmlFor="name">
-              Name *
-            </label>
-            <input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              placeholder="Who is transmitting?"
-              className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-sm text-neutral-100 outline-none placeholder:text-neutral-600 focus:border-blue-400/60"
-            />
-            <p className="mono mt-5 text-[10px] text-neutral-400">Preferred channel</p>
-            <div className="mt-2 flex gap-5">
-              {["Email", "Phone"].map((method) => (
-                <label key={method} className="flex items-center gap-2 text-sm text-neutral-300">
-                  <input
-                    type="checkbox"
-                    checked={methods.includes(method)}
-                    onChange={() => toggleMethod(method)}
-                    className="h-4 w-4 accent-indigo-400"
-                  />
-                  {method}
-                </label>
-              ))}
-            </div>
-            <label className="mono mt-5 block text-[10px] text-neutral-400" htmlFor="message">
-              Message *
-            </label>
-            <textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
-              rows={4}
-              placeholder="What's the signal?"
-              className="mt-2 w-full resize-none rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-sm text-neutral-100 outline-none placeholder:text-neutral-600 focus:border-blue-400/60"
-            />
-            <button
-              type="submit"
-              ref={send.ref}
-              onMouseMove={send.onMouseMove}
-              onMouseLeave={send.onMouseLeave}
-              className="mono mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-500 py-3 text-[11px] font-semibold text-white hover:bg-blue-400"
-              style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s" }}
-            >
-              Transmit <span aria-hidden>↗</span>
-            </button>
-          </form>
-
-          {/* circular transmit motif + direct links */}
-          <div className="reveal flex flex-col items-center gap-6">
-            <a
-              href={`mailto:${email}`}
-              aria-label="Email Sam"
-              ref={circle.ref}
-              onMouseMove={circle.onMouseMove}
-              onMouseLeave={circle.onMouseLeave}
-              className="group relative flex h-40 w-40 items-center justify-center rounded-full border border-white/10 transition-colors hover:border-violet-400/50"
-              style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), border-color 0.2s" }}
-            >
-              <span className="absolute inset-3 rounded-full border border-dashed border-white/10 transition-transform duration-700 group-hover:rotate-180" />
-              <span className="mono text-center text-[10px] leading-4 text-neutral-300">
-                Direct
-                <br />
-                line ↗
-              </span>
-            </a>
-            <div className="mono flex flex-col items-center gap-2 text-[10px] text-neutral-500">
-              <a href={github} target="_blank" rel="noopener noreferrer" className="hover:text-blue-300">
-                GitHub ↗
-              </a>
-              <a href={linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-blue-300">
-                LinkedIn ↗
-              </a>
-            </div>
+          <div className="reveal mono mt-8 flex flex-col gap-2 text-[12px]">
+            <a href={`mailto:${email}`} className="text-[color:var(--starlight)] hover:text-[color:var(--amber)]">{email}</a>
+            <a href={github} target="_blank" rel="noopener noreferrer" className="text-[color:var(--dim)] hover:text-[color:var(--amber)]">github.com/SamGabriel-Here</a>
+            <a href={linkedin} target="_blank" rel="noopener noreferrer" className="text-[color:var(--dim)] hover:text-[color:var(--amber)]">linkedin.com/in/samgabrielofficially</a>
           </div>
         </div>
+
+        <form onSubmit={submit} className="reveal">
+          <label className="mono text-[11px] text-[color:var(--faint)]" htmlFor="name">Name</label>
+          <input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Who is transmitting?" className={fieldCls} />
+
+          <p className="mono mt-5 text-[11px] text-[color:var(--faint)]">Preferred channel</p>
+          <div className="mt-2 flex gap-5">
+            {["Email", "Phone"].map((c) => (
+              <label key={c} className="flex items-center gap-2 text-[14px] text-[color:var(--dim)]">
+                <input type="checkbox" checked={channels.includes(c)} onChange={() => toggle(c)} className="h-4 w-4 accent-[color:var(--amber)]" />
+                {c}
+              </label>
+            ))}
+          </div>
+
+          <label className="mono mt-5 block text-[11px] text-[color:var(--faint)]" htmlFor="msg">Message</label>
+          <textarea id="msg" value={message} onChange={(e) => setMessage(e.target.value)} required rows={4} placeholder="What's the signal?" className={`${fieldCls} resize-none`} />
+
+          <button
+            type="submit"
+            ref={send.ref}
+            onMouseMove={send.onMouseMove}
+            onMouseLeave={send.onMouseLeave}
+            className="mono mt-6 w-full bg-[color:var(--amber)] py-3 text-[12px] font-bold text-[#1a1206] hover:bg-[color:var(--amber-deep)]"
+            style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s" }}
+          >
+            Transmit
+          </button>
+        </form>
       </div>
     </section>
   );
@@ -1242,34 +842,22 @@ function Contact() {
 
 function Footer() {
   return (
-    <footer className="relative border-t border-white/[0.06] px-5 py-8 sm:px-10">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-        <p className="mono text-[10px] text-neutral-600">
-          © {new Date().getFullYear()} Sam Gabriel · End of transmission
+    <footer className="relative border-t border-[color:var(--line)] px-5 py-8 sm:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <p className="mono text-[10px] text-[color:var(--faint)]">
+          Observation Log of Sam Gabriel · Indore · © {new Date().getFullYear()}
         </p>
-        <div className="flex items-center gap-5 text-neutral-500">
-          <a href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="transition-colors hover:text-blue-300">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-              <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0z" />
-            </svg>
-          </a>
-          <a href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="transition-colors hover:text-blue-300">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.75.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12 0 1.53-.01 2.76-.01 3.14 0 .3.2.66.8.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" />
-            </svg>
-          </a>
-          <a href={`mailto:${email}`} className="mono text-[10px] hover:text-blue-300">
-            {email}
-          </a>
-        </div>
+        <p className="mono text-[10px] text-[color:var(--faint)]">
+          Compiled with Next.js · <Clock /> IST
+        </p>
       </div>
     </footer>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                              */
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ *  Page                                                               *
+ * ------------------------------------------------------------------ */
 
 export default function Home() {
   useEffect(() => {
@@ -1290,22 +878,18 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative pb-10">
+    <div className="relative">
       <BackgroundLoop />
-      <Starfield />
+      <StarChart />
+      <GridField />
       <CursorGlow />
       <ScrollProgress />
-      <div className="fx-vignette" />
-      <div className="fx-grain" />
-      <TopBar />
-      <CaptionBar />
+      <Header />
       <main>
         <Hero />
-        <Work />
-        <TechBand />
-        <Numbers />
-        <Log />
-        <Contact />
+        <Catalogue />
+        <Instrument />
+        <Transmit />
       </main>
       <Footer />
     </div>
