@@ -41,6 +41,11 @@ typography:
     fontSize: "20px"
     fontWeight: 500
     lineHeight: 1.2
+  wordmark:
+    fontFamily: "Fraunces, Iowan Old Style, Georgia, serif"
+    fontSize: "15px"
+    fontWeight: 500
+    letterSpacing: "-0.01em"
   lede:
     fontFamily: "Geist, system-ui, sans-serif"
     fontSize: "18px"
@@ -199,10 +204,10 @@ add one here deliberately.
 |---|---|---|
 | 10 | `label-sm` | designation chips, dates, footer |
 | 11 | `label` | markers, nav, meta, tech stacks |
-| 12 | `data` | wordmark, sidereal readout, section counts |
+| 12 | `data` | sidereal readout, section counts |
 | 13 | `caption` | timeline detail |
 | 14 | `input` | form fields |
-| 15 | `body-sm` | card blurbs, dense copy |
+| 15 | `body-sm` / `wordmark` | card blurbs; the header wordmark, in Fraunces |
 | 16 | `body` | section body copy |
 | 18 | `lede` | hero intro |
 | 20 | `subtitle` | hero plate object name |
@@ -258,10 +263,19 @@ Keep it.
 ## Components
 
 **Header.** Fixed, 56px tall, `rgba(var(--ground-rgb), 0.8)` with `backdrop-blur-md`
-and a `--line` bottom border. Retreats on scroll down and returns on scroll up via
+and a `--line` bottom border. Laid out as `1fr | auto | 1fr` so the nav stays
+centred on the bar whatever the side groups weigh — `justify-between` only centred
+it by coincidence and drifted the moment the mobile toggle appeared. The wordmark
+is set in the display face, not mono, so the name reads as the identity rather
+than a fourth nav item. Retreats on scroll down and returns on scroll up via
 `.nav-shell[data-hidden]`, throttled to one frame with a 6px jitter threshold.
-Focus-capture forces it back so a keyboard user is never trapped behind it. Active
-section is marked with `aria-current` as well as amber, never colour alone.
+Focus-capture forces it back so a keyboard user is never trapped behind it.
+
+The active section carries `aria-current`, an amber colour shift, **and** a 4px
+amber dot — the page's own idiom for "this one is live", shared with the status
+indicator and the guide star. Its space is always reserved so nothing shifts as
+the active section changes, and it means the state never rests on hue alone. The
+same marker appears in the mobile list.
 
 **Plate (catalogue card).** An `<article>`, not an anchor. Hairline border, media at
 `aspect-[16/10]`, a scrim gradient at the foot of the media, the designation chip in

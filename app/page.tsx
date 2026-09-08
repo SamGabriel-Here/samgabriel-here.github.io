@@ -878,8 +878,15 @@ function Header() {
       className="nav-shell fixed inset-x-0 top-0 z-40 border-b border-[color:var(--line)] backdrop-blur-md"
       style={{ background: "rgba(var(--ground-rgb), 0.8)" }}
     >
-      <div className="shell flex h-14 items-center justify-between px-5 sm:px-8">
-        <a href="#log" className="mono text-[12px] text-[color:var(--starlight)]">
+      {/* 1fr | auto | 1fr keeps the nav centred on the bar whatever the two
+          side groups weigh — justify-between only centred it by coincidence */}
+      <div className="shell grid h-14 grid-cols-[1fr_auto_1fr] items-center px-5 sm:px-8">
+        {/* the display face, so the name reads as the identity and not as a
+            fourth nav item */}
+        <a
+          href="#log"
+          className="display justify-self-start text-[15px] font-medium tracking-[-0.01em] text-[color:var(--starlight)]"
+        >
           Sam&nbsp;Gabriel
         </a>
         <nav aria-label="Sections" className="hidden items-center gap-7 md:flex">
@@ -888,14 +895,22 @@ function Header() {
               key={n.id}
               href={`#${n.id}`}
               aria-current={active === n.id ? "true" : undefined}
-              className="mono text-[11px] transition-colors"
+              className="mono flex items-center gap-2 text-[11px] transition-colors"
               style={{ color: active === n.id ? "var(--amber)" : "var(--dim)" }}
             >
+              {/* the page's own idiom for "this one is live", and it keeps the
+                  active state from resting on hue alone. Always occupies space,
+                  so nothing shifts as the active section changes. */}
+              <span
+                aria-hidden
+                className="h-1 w-1 rounded-full transition-colors"
+                style={{ background: active === n.id ? "var(--amber)" : "transparent" }}
+              />
               {n.label}
             </a>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           {/* the bar retreats on scroll; this wrapper counter-moves so the one
               route to the conversion never leaves the screen */}
           <span className="cta-persist">
@@ -932,9 +947,14 @@ function Header() {
               href={`#${n.id}`}
               aria-current={active === n.id ? "true" : undefined}
               onClick={() => setMenu(false)}
-              className="mono border-b border-[color:var(--line)] py-3.5 text-[12px] last:border-b-0"
+              className="mono flex items-center gap-2.5 border-b border-[color:var(--line)] py-3.5 text-[12px] last:border-b-0"
               style={{ color: active === n.id ? "var(--amber)" : "var(--dim)" }}
             >
+              <span
+                aria-hidden
+                className="h-1 w-1 rounded-full"
+                style={{ background: active === n.id ? "var(--amber)" : "transparent" }}
+              />
               {n.label}
             </a>
           ))}
