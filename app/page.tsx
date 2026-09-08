@@ -268,40 +268,70 @@ function ScrollProgress() {
   );
 }
 
-function CursorGlow() {
-  const ref = useRef<HTMLDivElement>(null);
+/* A finder scope standing in for the pointer. The sight tracks exactly; the
+   ring lags a little, which is what makes it read as an instrument rather than
+   a sticker, and it locks amber over anything you can actually act on.
+
+   Gated on a fine pointer with motion welcome — touch, coarse pointers and
+   reduced-motion visitors keep their own cursor untouched, which matters
+   because hiding the system cursor is not a free choice. */
+function Reticle() {
+  const ringRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!canHover()) return;
-    const el = ref.current;
-    if (!el) return;
+    const ring = ringRef.current;
+    const dot = dotRef.current;
+    if (!ring || !dot) return;
+
+    const root = document.documentElement;
+    root.classList.add("reticle-on");
+
     let tx = innerWidth / 2;
     let ty = innerHeight / 2;
     let x = tx;
     let y = ty;
-    let shown = false;
     let raf = 0;
-    const loop = () => {
-      x += (tx - x) * 0.12;
-      y += (ty - y) * 0.12;
-      el.style.transform = `translate3d(${(x - 150).toFixed(1)}px, ${(y - 150).toFixed(1)}px, 0)`;
-      // caught up: park the loop rather than compositing a still layer forever
-      if (Math.abs(tx - x) < 0.2 && Math.abs(ty - y) < 0.2) {
+    let awake = false;
+
+    const step = () => {
+      x += (tx - x) * 0.18;
+      y += (ty - y) * 0.18;
+      ring.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+      // settled: park the loop rather than compositing a still ring forever
+      if (Math.abs(tx - x) < 0.15 && Math.abs(ty - y) < 0.15) {
         raf = 0;
         return;
       }
-      raf = requestAnimationFrame(loop);
+      raf = requestAnimationFrame(step);
     };
     const wake = () => {
-      if (!raf && !document.hidden) raf = requestAnimationFrame(loop);
+      if (!raf && !document.hidden) raf = requestAnimationFrame(step);
     };
+
     const move = (e: PointerEvent) => {
       tx = e.clientX;
       ty = e.clientY;
-      if (!shown) {
-        shown = true;
-        el.style.opacity = "1";
+      // the sight is never behind the pointer, so aiming still feels exact
+      dot.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+      if (!awake) {
+        awake = true;
+        ring.classList.add("is-awake");
+        dot.classList.add("is-awake");
       }
       wake();
+    };
+
+    const LOCK = 'a, button, input, textarea, select, summary, label, [role="button"]';
+    const over = (e: PointerEvent) => {
+      const hit = (e.target as HTMLElement | null)?.closest(LOCK);
+      ring.classList.toggle("is-locked", Boolean(hit));
+    };
+    const leave = () => {
+      awake = false;
+      ring.classList.remove("is-awake", "is-locked");
+      dot.classList.remove("is-awake");
     };
     const onVis = () => {
       if (document.hidden) {
@@ -311,25 +341,32 @@ function CursorGlow() {
         wake();
       }
     };
+
     window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerover", over, { passive: true });
+    document.addEventListener("mouseleave", leave);
     document.addEventListener("visibilitychange", onVis);
     return () => {
+      root.classList.remove("reticle-on");
       window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerover", over);
+      document.removeEventListener("mouseleave", leave);
       document.removeEventListener("visibilitychange", onVis);
       cancelAnimationFrame(raf);
     };
   }, []);
+
   return (
-    <div
-      aria-hidden
-      ref={ref}
-      className="pointer-events-none fixed left-0 top-0 z-20 h-[300px] w-[300px] rounded-full opacity-0"
-      style={{
-        background: "radial-gradient(circle, rgba(var(--amber-rgb), 0.09) 0%, transparent 62%)",
-        mixBlendMode: "screen",
-        transition: "opacity 0.6s ease",
-      }}
-    />
+    <>
+      <div ref={ringRef} aria-hidden className="reticle">
+        <span className="reticle-tick" />
+        <span className="reticle-tick" />
+        <span className="reticle-tick" />
+        <span className="reticle-tick" />
+        <span className="reticle-ring" />
+      </div>
+      <div ref={dotRef} aria-hidden className="reticle-dot" />
+    </>
   );
 }
 
@@ -1441,7 +1478,7 @@ export default function Home() {
       <StarChart />
       <Grain />
       <GridField />
-      <CursorGlow />
+      <Reticle />
       <ScrollProgress />
       <Header />
       <main id="main" tabIndex={-1}>

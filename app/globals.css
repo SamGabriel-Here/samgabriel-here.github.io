@@ -201,6 +201,117 @@ body {
   }
 }
 
+/* ------------------------------------------------------------------ *
+ *  The reticle — a finder scope standing in for the pointer.          *
+ *  Only ever active on a fine pointer with motion welcome; everyone   *
+ *  else keeps their own cursor, untouched.                            *
+ * ------------------------------------------------------------------ */
+.reticle-on,
+.reticle-on * {
+  cursor: none;
+}
+
+.reticle {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.reticle.is-awake {
+  opacity: 1;
+}
+
+.reticle-ring {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(242, 239, 249, 0.5);
+  border-radius: 50%;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease;
+}
+
+/* four ticks outside the ring, like a finder scope's graticule */
+.reticle-tick {
+  position: absolute;
+  background: rgba(242, 239, 249, 0.55);
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.22s ease;
+}
+.reticle-tick:nth-child(1),
+.reticle-tick:nth-child(2) {
+  left: 50%;
+  width: 1px;
+  height: 6px;
+  margin-left: -0.5px;
+}
+.reticle-tick:nth-child(1) {
+  top: 0;
+}
+.reticle-tick:nth-child(2) {
+  bottom: 0;
+}
+.reticle-tick:nth-child(3),
+.reticle-tick:nth-child(4) {
+  top: 50%;
+  height: 1px;
+  width: 6px;
+  margin-top: -0.5px;
+}
+.reticle-tick:nth-child(3) {
+  left: 0;
+}
+.reticle-tick:nth-child(4) {
+  right: 0;
+}
+
+/* target acquired */
+.reticle.is-locked .reticle-ring {
+  transform: scale(1.45);
+  border-color: var(--amber);
+}
+.reticle.is-locked .reticle-tick {
+  background: var(--amber);
+}
+.reticle.is-locked .reticle-tick:nth-child(1) {
+  transform: translateY(-3px);
+}
+.reticle.is-locked .reticle-tick:nth-child(2) {
+  transform: translateY(3px);
+}
+.reticle.is-locked .reticle-tick:nth-child(3) {
+  transform: translateX(-3px);
+}
+.reticle.is-locked .reticle-tick:nth-child(4) {
+  transform: translateX(3px);
+}
+
+/* the sight itself sits under the pointer with no lag at all */
+.reticle-dot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  border-radius: 50%;
+  background: var(--amber);
+  z-index: 61;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.reticle-dot.is-awake {
+  opacity: 1;
+}
+
 /* amber bloom — the one glow, reserved for the things that are alight */
 .bloom {
   filter: drop-shadow(0 0 10px rgba(var(--amber-rgb), 0.55))
