@@ -698,30 +698,11 @@ function PlateMark({ size = 20 }: { size?: number }) {
   );
 }
 
-/* A star with real diffraction spikes — the kind thrown by the vanes holding a
-   telescope's secondary mirror. It sits over the tittle of the i, so the
-   letter's own dot becomes the star's burning core and nothing is removed. */
-function TittleStar() {
-  return (
-    <svg aria-hidden viewBox="0 0 24 24" className="tittle-star">
-      <g className="spikes">
-        <polygon points="12,0 12.7,12 11.3,12" fill="var(--amber)" />
-        <polygon points="12,24 12.7,12 11.3,12" fill="var(--amber)" />
-        <polygon points="0,12 12,12.7 12,11.3" fill="var(--amber)" />
-        <polygon points="24,12 12,12.7 12,11.3" fill="var(--amber)" />
-        <g transform="rotate(45 12 12)" opacity="0.45">
-          <polygon points="12,3.5 12.5,12 11.5,12" fill="var(--amber)" />
-          <polygon points="12,20.5 12.5,12 11.5,12" fill="var(--amber)" />
-        </g>
-      </g>
-    </svg>
-  );
-}
 
 /* A headline split to characters so it can arrive as a cascade. The spans are
    hidden from assistive tech and the heading carries the real label, so this
    is never read out letter by letter. */
-function SplitText({ text, delay = 0.12, star = false }: { text: string; delay?: number; star?: boolean }) {
+function SplitText({ text, delay = 0.12 }: { text: string; delay?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -734,14 +715,7 @@ function SplitText({ text, delay = 0.12, star = false }: { text: string; delay?:
     <span ref={ref} aria-hidden="true">
       {Array.from(text).map((ch, i) => (
         <span key={`${ch}-${i}`} className="char" style={{ animationDelay: `${delay + i * 0.028}s` }}>
-          {star && ch === "i" ? (
-            <span className="tittle">
-              i
-              <TittleStar />
-            </span>
-          ) : (
-            ch
-          )}
+          {ch}
         </span>
       ))}
     </span>
@@ -1077,7 +1051,7 @@ function Hero() {
             transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
           }}
         >
-          <SplitText text="Sam Gabriel" star />
+          <SplitText text="Sam Gabriel" />
         </h1>
 
         <div className="mt-11 grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-start lg:gap-14">

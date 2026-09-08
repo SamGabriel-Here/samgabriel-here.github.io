@@ -313,7 +313,7 @@ body {
 }
 
 /* ------------------------------------------------------------------ *
- *  Identity — the punched plate, and the star on the tittle           *
+ *  Identity — the punched plate                                       *
  * ------------------------------------------------------------------ */
 
 /* The mark: SG punched into a plate. S = 01010011, G = 01000111, sixteen
@@ -348,43 +348,6 @@ body {
 a:hover > .plate-mark .bit-on {
   animation: punchIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--i) * 26ms);
-}
-
-/* The wordmark: the tittle of the i in Gabriel is a star with real
-   diffraction spikes. The letter's own dot becomes its burning core, so
-   nothing has to be removed from the glyph. Only worth doing at display
-   size — below about 3rem the spikes stop resolving. */
-.tittle {
-  position: relative;
-  display: inline-block;
-}
-.tittle-star {
-  position: absolute;
-  left: 50%;
-  /* the tittle of a Fraunces i sits just under the ascender, so the star's
-     centre lands a little below the top of the inline content box */
-  top: 0.145em;
-  width: 0.38em;
-  height: 0.38em;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  overflow: visible;
-}
-@keyframes flare {
-  0%,
-  100% {
-    transform: scale(0.88);
-    opacity: 0.82;
-  }
-  50% {
-    transform: scale(1.06);
-    opacity: 1;
-  }
-}
-.tittle-star .spikes {
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: flare 4.6s ease-in-out infinite;
 }
 
 /* amber bloom — the one glow, reserved for the things that are alight */
@@ -578,8 +541,7 @@ a:hover > .plate-mark .bit-on {
     transition: none;
   }
   .plate-mark .bit-on,
-  a:hover > .plate-mark .bit-on,
-  .tittle-star .spikes {
+  a:hover > .plate-mark .bit-on {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
