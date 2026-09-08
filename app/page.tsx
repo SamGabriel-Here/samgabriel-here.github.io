@@ -333,10 +333,10 @@ function CursorGlow() {
   );
 }
 
-/* The deep field. Three parallax bands of stars in emission colours, the
-   brightest few haloed, and one amber guide star. Still throttled to 30fps,
-   DPR-capped and parked when the tab is hidden: this is atmosphere, not a
-   reason to spin the fan. */
+/* The deep field. A Milky Way band, three parallax depths of stars in
+   emission colours, faint asterism lines, occasional meteors, and one amber
+   guide star. Still throttled to 30fps, DPR-capped and parked when the tab is
+   hidden: this is atmosphere, not a reason to spin the fan. */
 type Star = {
   x: number;
   y: number;
@@ -349,11 +349,44 @@ type Star = {
   halo: boolean;
 };
 
+type Meteor = { x: number; y: number; vx: number; vy: number; life: number; span: number };
+
 // straight from the palette: starlight, ion, rose, violet, warm gold
 const TINTS = ["242,239,249", "103,232,240", "255,122,176", "177,140,255", "255,200,150"];
 const TINT_WEIGHTS = [0.5, 0.16, 0.11, 0.11, 0.12];
 const AMBER_RGB = "255,180,84"; // --amber
 const AMBER_CORE_RGB = "255,214,170"; // --amber, lifted toward its core
+
+/* Asterisms in normalised space. Drawn faintly, they turn a random scatter
+   into something that reads as a chart. */
+const ASTERISMS: [number, number][][] = [
+  [
+    [0.07, 0.2],
+    [0.13, 0.29],
+    [0.2, 0.25],
+    [0.26, 0.36],
+    [0.18, 0.43],
+    [0.07, 0.2],
+  ],
+  [
+    [0.69, 0.63],
+    [0.76, 0.56],
+    [0.83, 0.61],
+    [0.89, 0.53],
+  ],
+  [
+    [0.43, 0.79],
+    [0.5, 0.71],
+    [0.57, 0.75],
+    [0.62, 0.67],
+  ],
+];
+
+// centroids once at module load; the draw loop must not recompute them
+const CENTROIDS: [number, number][] = ASTERISMS.map((f) => [
+  f.reduce((t, q) => t + q[0], 0) / f.length,
+  f.reduce((t, q) => t + q[1], 0) / f.length,
+]);
 
 function makeStars(n: number): Star[] {
   let seed = 2113;
@@ -371,12 +404,22 @@ function makeStars(n: number): Star[] {
   };
   return Array.from({ length: n }, () => {
     const d = rand();
+    // roughly two in five sit in the galactic band, which runs low-left to
+    // high-right; the triangular sum is a cheap stand-in for a normal spread
+    const band = rand() < 0.42;
+    const x = rand();
+    let y = rand();
+    if (band) {
+      const centre = 0.82 - 0.6 * x;
+      y = centre + (rand() + rand() + rand() - 1.5) * 0.12;
+      y = Math.min(0.999, Math.max(0.001, y));
+    }
     return {
-      x: rand(),
-      y: rand(),
+      x,
+      y,
       d,
       s: d > 0.93 ? 2 : 1,
-      b: 0.22 + d * 0.66,
+      b: (0.22 + d * 0.66) * (band ? 1.15 : 1),
       tw: 0.0006 + rand() * 0.0016,
       ph: rand() * Math.PI * 2,
       tint: pickTint(),
@@ -421,12 +464,47 @@ function StarChart() {
     const count = Math.round(Math.max(150, Math.min(520, (innerWidth * innerHeight) / 3400)));
     const stars = makeStars(count);
     const guide = { x: 0.78, y: 0.26 };
+    const meteors: Meteor[] = [];
+    let nextMeteor = 4000;
 
     const draw = (t: number) => {
       ctx.clearRect(0, 0, w, h);
       const scroll = window.scrollY;
       px += (ptx - px) * 0.05;
       py += (pty - py) * 0.05;
+
+      // asterisms sit at a single mid depth so the figures stay rigid
+      const ad = 0.55;
+      const ax = -px * (0.006 + ad * 0.026) * w;
+      const ay = -scroll * (0.02 + ad * 0.08) - py * (0.004 + ad * 0.016) * h;
+      ctx.lineWidth = 1;
+      // one uniform scale for both axes, so a figure keeps its shape instead of
+      // stretching into a zigzag on a narrow screen
+      const fs = Math.min(w, h);
+      for (let f = 0; f < ASTERISMS.length; f++) {
+        const fig = ASTERISMS[f];
+        const c = CENTROIDS[f];
+        const ox = c[0] * w + ax;
+        const oy = c[1] * h + ay;
+        ctx.strokeStyle = "rgba(242,239,249,0.07)";
+        ctx.beginPath();
+        for (let i = 0; i < fig.length; i++) {
+          const cx = ox + (fig[i][0] - c[0]) * fs;
+          const cy = oy + (fig[i][1] - c[1]) * fs;
+          if (i === 0) ctx.moveTo(cx, cy);
+          else ctx.lineTo(cx, cy);
+        }
+        ctx.stroke();
+        ctx.fillStyle = "rgba(242,239,249,0.34)";
+        for (let i = 0; i < fig.length; i++) {
+          ctx.fillRect(
+            Math.round(ox + (fig[i][0] - c[0]) * fs),
+            Math.round(oy + (fig[i][1] - c[1]) * fs),
+            2,
+            2,
+          );
+        }
+      }
 
       for (const s of stars) {
         const drift = t * 0.0000016 * (0.25 + s.d);
@@ -445,6 +523,44 @@ function StarChart() {
         }
         ctx.fillStyle = `rgba(${s.tint},${a.toFixed(3)})`;
         ctx.fillRect(cx, cy, s.s, s.s);
+      }
+
+      // meteors: rare, brief, and never more than a couple at once
+      if (t > nextMeteor) {
+        nextMeteor = t + 9000 + Math.random() * 14000;
+        if (meteors.length < 2) {
+          meteors.push({
+            x: 0.08 + Math.random() * 0.8,
+            y: -0.04,
+            vx: 0.00019 + Math.random() * 0.00013,
+            vy: 0.00026 + Math.random() * 0.00016,
+            life: 0,
+            span: 1100 + Math.random() * 500,
+          });
+        }
+      }
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i];
+        m.life += 33;
+        if (m.life > m.span) {
+          meteors.splice(i, 1);
+          continue;
+        }
+        const p = m.life / m.span;
+        const hx = (m.x + m.vx * m.life) * w;
+        const hy = (m.y + m.vy * m.life) * h;
+        const tailX = hx - m.vx * 260 * w;
+        const tailY = hy - m.vy * 260 * h;
+        const fade = Math.sin(Math.PI * p) * 0.75;
+        const g = ctx.createLinearGradient(hx, hy, tailX, tailY);
+        g.addColorStop(0, `rgba(242,239,249,${fade.toFixed(3)})`);
+        g.addColorStop(1, "rgba(242,239,249,0)");
+        ctx.strokeStyle = g;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(tailX, tailY);
+        ctx.stroke();
       }
 
       // the guide star — the one thing that is alight
@@ -606,6 +722,42 @@ function BackgroundLoop() {
 /* ------------------------------------------------------------------ *
  *  Chrome                                                             *
  * ------------------------------------------------------------------ */
+
+/* Real sky for the station in the hero, not invented data: local sidereal
+   time tells you which right ascension is on the meridian over Indore right
+   now, and the moon's age comes from the synodic month since a known new
+   moon. Both are computed from the visitor's clock. */
+const STATION_LON = 75.86; // degrees east
+
+function skyReadout(now: Date) {
+  const jd = now.getTime() / 86400000 + 2440587.5;
+  const d = jd - 2451545.0;
+
+  // Greenwich mean sidereal time, then shift east to the station
+  const gmst = 18.697374558 + 24.06570982441908 * d;
+  const lst = ((((gmst + STATION_LON / 15) % 24) + 24) % 24);
+  const lh = Math.floor(lst);
+  const lm = Math.floor((lst - lh) * 60);
+
+  // moon age against the new moon of 2000-01-06 18:14 UT
+  const synodic = 29.530588853;
+  const age = (((jd - 2451550.1) % synodic) + synodic) % synodic;
+  const illum = Math.round(((1 - Math.cos((2 * Math.PI * age) / synodic)) / 2) * 100);
+  const phase = age < synodic / 2 ? "waxing" : "waning";
+
+  return `LST ${String(lh).padStart(2, "0")}h${String(lm).padStart(2, "0")}m · Moon ${illum}% ${phase}`;
+}
+
+function SkyReadout() {
+  const [sky, setSky] = useState("—");
+  useEffect(() => {
+    const f = () => setSky(skyReadout(new Date()));
+    f();
+    const id = setInterval(f, 30000);
+    return () => clearInterval(id);
+  }, []);
+  return <span>{sky}</span>;
+}
 
 function Clock() {
   const [t, setT] = useState("--:--:--");
@@ -772,6 +924,10 @@ function Hero() {
                   <dd className="text-[color:var(--starlight)]">{v}</dd>
                 </div>
               ))}
+              <dt className="text-[color:var(--faint)]">Sky</dt>
+              <dd className="text-[color:var(--dim)]">
+                <SkyReadout />
+              </dd>
               <dt className="text-[color:var(--faint)]">Status</dt>
               <dd className="flex items-center gap-2 text-[color:var(--amber)]">
                 <span className="guide-star bloom inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--amber)]" />
