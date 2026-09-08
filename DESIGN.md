@@ -279,6 +279,20 @@ fetched for them at all.
 Placeholder is `--faint`, which clears 4.5:1. The channel checkboxes are wrapped in a
 `fieldset` with a `legend`, not a paragraph label.
 
+**Reticle (the pointer).** The system cursor is replaced by a finder scope: a
+starlight ring with four graticule ticks, plus an amber sight dot. The sight
+tracks the pointer exactly; the ring lags at a 0.18 lerp. That split is what makes
+it read as an instrument being aimed rather than a shape being dragged. Over
+anything actionable the ring scales to 1.45, turns amber, and the ticks step
+outward.
+
+**This is gated and the gate is not optional.** It activates only behind
+`canHover()` — a fine pointer with `prefers-reduced-motion: no-preference`. Touch,
+coarse pointers and reduced-motion visitors keep their own cursor with nothing
+overridden, because hiding the system cursor takes away an affordance some people
+depend on, including anyone using OS cursor-size settings. Do not widen the gate,
+and do not apply `cursor: none` outside `.reticle-on`.
+
 **Backgrounds.** Four fixed layers, by explicit owner decision: a video loop
 (desktop and motion-ok only), the nebula field, the canvas star field, and the
 coordinate grid. Optimising how they run is welcome; removing one is the owner's
