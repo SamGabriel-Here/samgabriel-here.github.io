@@ -6,16 +6,31 @@
  * ------------------------------------------------------------------ */
 
 :root {
+  /* native controls, caret and scrollbars belong to the design too */
+  color-scheme: dark;
+
   --ground: #080a10;
   --ground-2: #0d1017;
-  --ground-3: #12161f;
+  --ground-deep: #05070c;
   --starlight: #eef2f6;
   --dim: #8b96a5;
-  --faint: #5c6472;
+  /* 4.9:1 on --ground, 4.7:1 on --ground-2 — carries 10-12px text, so AA applies */
+  --faint: #767f90;
   --amber: #ffb454;
   --amber-deep: #e0873a;
+  /* ink laid on amber: 10.5:1 */
+  --ink: #1a1206;
+  --rail: #1d2431;
+
+  /* raw channels, for the places that need alpha or a canvas fillStyle */
+  --ground-rgb: 8, 10, 16;
+  --amber-rgb: 255, 180, 84;
+
+  /* dividers — decorative, no contrast floor */
   --line: rgba(238, 242, 246, 0.09);
   --line-strong: rgba(238, 242, 246, 0.17);
+  /* interactive boundaries — 3.2:1, meets WCAG 1.4.11 */
+  --field-line: rgba(238, 242, 246, 0.38);
 }
 
 @theme inline {
@@ -41,7 +56,7 @@ body {
 
 ::selection {
   background: var(--amber);
-  color: #1a1206;
+  color: var(--ink);
 }
 
 *:focus-visible {
@@ -56,10 +71,10 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #05070c;
+  background: var(--ground-deep);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1d2431;
+  background: var(--rail);
   border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -84,10 +99,22 @@ body {
   color: var(--amber);
 }
 
-/* hairline rule that reads as an instrument division */
-.rule {
-  height: 1px;
-  background: var(--line);
+/* skip link — visible only once focused */
+.skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  transform: translateY(-120%);
+  background: var(--amber);
+  color: var(--ink);
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+  font-size: 12px;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
 }
 
 /* faint celestial coordinate grid, fixed behind content */
@@ -138,15 +165,6 @@ body {
   animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 @keyframes pulse-star {
   0%,
   100% {
@@ -160,10 +178,6 @@ body {
 }
 .guide-star {
   animation: pulse-star 3.4s ease-in-out infinite;
-}
-
-.marquee-hover:hover {
-  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -183,6 +197,9 @@ body {
   }
   .bg-loop video {
     display: none;
+  }
+  .skip-link {
+    transition: none;
   }
 }
 

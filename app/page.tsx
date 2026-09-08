@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /* ------------------------------------------------------------------ *
  *  Content — the working catalogue                                    *
@@ -159,30 +159,82 @@ const linkedin = "https://www.linkedin.com/in/samgabrielofficially/";
  *  Motion helpers — pointer motion gated to fine pointer + motion-ok  *
  * ------------------------------------------------------------------ */
 
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 function canHover() {
   return (
     typeof window !== "undefined" &&
     window.matchMedia("(pointer: fine)").matches &&
-    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    !prefersReducedMotion()
   );
 }
 
+/* Subscribe to a media query the way React 19 wants it: an external store
+   rather than setState in an effect, so there is no cascading render and the
+   value keeps tracking the setting if the visitor changes it mid-visit. */
+function useMediaQuery(query: string) {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mq = window.matchMedia(query);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    [query],
+  );
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false, // server render always takes the conservative branch
+  );
+}
+
+/* Motion-gated media: the poster carries the frame until we know motion is
+   welcome, so reduced-motion visitors never get an autoplaying loop and the
+   video bytes are never fetched for them. Asking for `no-preference` rather
+   than negating `reduce` keeps the server default on the still frame. */
+function useMotionOk() {
+  return useMediaQuery("(prefers-reduced-motion: no-preference)");
+}
+
+/* Magnetic pull toward the pointer. The listeners are bound in an effect and
+   the element is measured once per hover: no ref is read during render, and no
+   rect is read per mousemove (both force work the browser does not need). */
 function useMagnetic<T extends HTMLElement>(strength = 0.3) {
-  const ref = useRef<T>(null);
-  const on = useRef(false);
+  const ref = useRef<T | null>(null);
+
   useEffect(() => {
-    on.current = canHover();
-  }, []);
-  const onMouseMove = (e: React.MouseEvent) => {
     const el = ref.current;
-    if (!on.current || !el) return;
-    const r = el.getBoundingClientRect();
-    el.style.transform = `translate(${(e.clientX - (r.left + r.width / 2)) * strength}px, ${(e.clientY - (r.top + r.height / 2)) * strength}px)`;
-  };
-  const onMouseLeave = () => {
-    if (ref.current) ref.current.style.transform = "translate(0px, 0px)";
-  };
-  return { ref, onMouseMove, onMouseLeave };
+    if (!el || !canHover()) return;
+    let box: DOMRect | null = null;
+    const enter = () => {
+      box = el.getBoundingClientRect();
+    };
+    const move = (e: MouseEvent) => {
+      if (!box) return;
+      const dx = (e.clientX - (box.left + box.width / 2)) * strength;
+      const dy = (e.clientY - (box.top + box.height / 2)) * strength;
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+    };
+    const leave = () => {
+      box = null;
+      el.style.transform = "translate(0px, 0px)";
+    };
+    el.addEventListener("mouseenter", enter);
+    el.addEventListener("mousemove", move);
+    el.addEventListener("mouseleave", leave);
+    return () => {
+      el.removeEventListener("mouseenter", enter);
+      el.removeEventListener("mousemove", move);
+      el.removeEventListener("mouseleave", leave);
+    };
+  }, [strength]);
+
+  return ref;
 }
 
 function ScrollProgress() {
@@ -228,6 +280,20 @@ function CursorGlow() {
     let y = ty;
     let shown = false;
     let raf = 0;
+    const loop = () => {
+      x += (tx - x) * 0.12;
+      y += (ty - y) * 0.12;
+      el.style.transform = `translate3d(${(x - 150).toFixed(1)}px, ${(y - 150).toFixed(1)}px, 0)`;
+      // caught up: park the loop rather than compositing a still layer forever
+      if (Math.abs(tx - x) < 0.2 && Math.abs(ty - y) < 0.2) {
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    const wake = () => {
+      if (!raf && !document.hidden) raf = requestAnimationFrame(loop);
+    };
     const move = (e: PointerEvent) => {
       tx = e.clientX;
       ty = e.clientY;
@@ -235,17 +301,21 @@ function CursorGlow() {
         shown = true;
         el.style.opacity = "1";
       }
+      wake();
     };
-    const loop = () => {
-      x += (tx - x) * 0.12;
-      y += (ty - y) * 0.12;
-      el.style.transform = `translate3d(${(x - 150).toFixed(1)}px, ${(y - 150).toFixed(1)}px, 0)`;
-      raf = requestAnimationFrame(loop);
+    const onVis = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else {
+        wake();
+      }
     };
     window.addEventListener("pointermove", move, { passive: true });
-    raf = requestAnimationFrame(loop);
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       window.removeEventListener("pointermove", move);
+      document.removeEventListener("visibilitychange", onVis);
       cancelAnimationFrame(raf);
     };
   }, []);
@@ -255,7 +325,7 @@ function CursorGlow() {
       ref={ref}
       className="pointer-events-none fixed left-0 top-0 z-20 h-[300px] w-[300px] rounded-full opacity-0"
       style={{
-        background: "radial-gradient(circle, rgba(255,180,84,0.09) 0%, transparent 62%)",
+        background: "radial-gradient(circle, rgba(var(--amber-rgb), 0.09) 0%, transparent 62%)",
         mixBlendMode: "screen",
         transition: "opacity 0.6s ease",
       }}
@@ -267,6 +337,10 @@ function CursorGlow() {
 type Star = { x: number; y: number; d: number; s: number; b: number; tw: number; ph: number; tint: string };
 
 const TINTS = ["238,242,246", "190,214,240", "255,210,150"];
+
+// canvas cannot read a CSS custom property, so the accent is named once here
+const AMBER_RGB = "255,180,84"; // --amber
+const AMBER_CORE_RGB = "255,200,130"; // --amber, lifted toward its core
 
 function makeStars(n: number): Star[] {
   let seed = 2113;
@@ -346,11 +420,11 @@ function StarChart() {
       const gy = (guide.y - (scroll * 0.05) / h - py * 0.02) * h;
       const pulse = 0.6 + 0.4 * Math.sin(t * 0.0022);
       const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 26);
-      grad.addColorStop(0, `rgba(255,180,84,${(0.5 * pulse).toFixed(3)})`);
-      grad.addColorStop(1, "rgba(255,180,84,0)");
+      grad.addColorStop(0, `rgba(${AMBER_RGB},${(0.5 * pulse).toFixed(3)})`);
+      grad.addColorStop(1, `rgba(${AMBER_RGB},0)`);
       ctx.fillStyle = grad;
       ctx.fillRect(gx - 26, gy - 26, 52, 52);
-      ctx.fillStyle = `rgba(255,200,130,${(0.85 * pulse).toFixed(3)})`;
+      ctx.fillStyle = `rgba(${AMBER_CORE_RGB},${(0.85 * pulse).toFixed(3)})`;
       ctx.fillRect(Math.round(gx), Math.round(gy), 2, 2);
     };
 
@@ -404,27 +478,57 @@ function GridField() {
 
 function BackgroundLoop() {
   const vref = useRef<HTMLVideoElement>(null);
+  // globals.css hides this layer under 640px and under reduced motion.
+  // Match that here so the megabyte is never fetched for those visitors.
+  const wide = useMediaQuery("(min-width: 641px)");
+  const motionOk = useMotionOk();
+  const enabled = wide && motionOk;
+
   useEffect(() => {
     const v = vref.current;
-    if (!v) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!enabled || !v) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const onActivity = () => {
+      if (document.hidden) return;
       if (v.paused) v.play().catch(() => {});
       clearTimeout(timer);
       timer = setTimeout(() => v.pause(), 1600);
     };
+    const onVis = () => {
+      if (document.hidden) {
+        clearTimeout(timer);
+        v.pause();
+      }
+    };
     const evs: (keyof WindowEventMap)[] = ["scroll", "wheel", "mousemove", "pointerdown", "keydown", "touchmove"];
     for (const e of evs) window.addEventListener(e, onActivity, { passive: true });
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       for (const e of evs) window.removeEventListener(e, onActivity);
+      document.removeEventListener("visibilitychange", onVis);
       clearTimeout(timer);
     };
-  }, []);
+  }, [enabled]);
+
   return (
     <div aria-hidden className="bg-loop pointer-events-none fixed inset-0 -z-20">
-      <video ref={vref} src="/cosmic-loop.mp4" poster="/cosmic-loop.jpg" className="h-full w-full object-cover opacity-30" loop muted playsInline preload="metadata" />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(130% 100% at 50% 20%, rgba(8,10,16,0.55) 0%, rgba(8,10,16,0.9) 100%)" }} />
+      <video
+        ref={vref}
+        src={enabled ? "/cosmic-loop.mp4" : undefined}
+        poster="/cosmic-loop.jpg"
+        className="h-full w-full object-cover opacity-30"
+        loop
+        muted
+        playsInline
+        preload="none"
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(130% 100% at 50% 20%, rgba(var(--ground-rgb), 0.55) 0%, rgba(var(--ground-rgb), 0.9) 100%)",
+        }}
+      />
     </div>
   );
 }
@@ -446,7 +550,7 @@ function Clock() {
 
 function Header() {
   const [active, setActive] = useState("log");
-  const cta = useMagnetic<HTMLAnchorElement>(0.4);
+  const ctaRef = useMagnetic<HTMLAnchorElement>(0.4);
   useEffect(() => {
     const io = new IntersectionObserver(
       (es) => es.forEach((e) => e.isIntersecting && setActive(e.target.id)),
@@ -459,16 +563,20 @@ function Header() {
     return () => io.disconnect();
   }, []);
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--line)] bg-[#080a10]/80 backdrop-blur-md">
+    <header
+      className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--line)] backdrop-blur-md"
+      style={{ background: "rgba(var(--ground-rgb), 0.8)" }}
+    >
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
         <a href="#log" className="mono text-[12px] text-[color:var(--starlight)]">
           Sam&nbsp;Gabriel
         </a>
-        <nav className="hidden items-center gap-7 md:flex">
+        <nav aria-label="Sections" className="hidden items-center gap-7 md:flex">
           {nav.map((n) => (
             <a
               key={n.id}
               href={`#${n.id}`}
+              aria-current={active === n.id ? "true" : undefined}
               className="mono text-[11px] transition-colors"
               style={{ color: active === n.id ? "var(--amber)" : "var(--dim)" }}
             >
@@ -478,10 +586,8 @@ function Header() {
         </nav>
         <a
           href="#transmit"
-          ref={cta.ref}
-          onMouseMove={cta.onMouseMove}
-          onMouseLeave={cta.onMouseLeave}
-          className="mono rounded-sm border border-[color:var(--amber)]/40 px-3.5 py-1.5 text-[11px] text-[color:var(--amber)] transition-colors hover:bg-[color:var(--amber)] hover:text-[#1a1206]"
+          ref={ctaRef}
+          className="mono rounded-sm border border-[color:var(--amber)]/40 px-3.5 py-1.5 text-[11px] text-[color:var(--amber)] transition-colors hover:bg-[color:var(--amber)] hover:text-[color:var(--ink)]"
           style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s, color 0.2s" }}
         >
           Transmit
@@ -501,14 +607,19 @@ function Hero() {
   useEffect(() => {
     on.current = canHover();
   }, []);
+  const box = useRef<DOMRect | null>(null);
+  const onEnter = () => {
+    if (on.current && secRef.current) box.current = secRef.current.getBoundingClientRect();
+  };
   const onMove = (e: React.PointerEvent) => {
     const el = secRef.current;
-    if (!on.current || !el) return;
-    const r = el.getBoundingClientRect();
+    const r = box.current;
+    if (!on.current || !el || !r) return;
     el.style.setProperty("--mx", ((e.clientX - (r.left + r.width / 2)) / (r.width / 2)).toFixed(3));
     el.style.setProperty("--my", ((e.clientY - (r.top + r.height / 2)) / (r.height / 2)).toFixed(3));
   };
   const onLeave = () => {
+    box.current = null;
     const el = secRef.current;
     if (el) {
       el.style.setProperty("--mx", "0");
@@ -526,6 +637,7 @@ function Hero() {
     <section
       id="log"
       ref={secRef}
+      onPointerEnter={onEnter}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       className="relative flex min-h-[100svh] items-center overflow-hidden px-5 pb-24 pt-28 sm:px-8"
@@ -566,7 +678,7 @@ function Hero() {
 
         {/* right — a plate: the brightest object */}
         <a
-          href={plates[0].source}
+          href={plates[0].live || plates[0].source}
           target="_blank"
           rel="noopener noreferrer"
           className="reveal in group relative block overflow-hidden border border-[color:var(--line-strong)]"
@@ -576,17 +688,14 @@ function Hero() {
           }}
         >
           <div className="relative aspect-[4/3] overflow-hidden">
-            <video
-              src={plates[0].media}
-              poster={plates[0].media?.replace(/\.mp4$/, ".jpg")}
+            <PlateMedia
+              o={plates[0]}
               className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
             />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 55%, rgba(8,10,16,0.85) 100%)" }} />
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(180deg, transparent 55%, rgba(var(--ground-rgb),0.85) 100%)" }}
+            />
           </div>
           <div className="flex items-baseline justify-between border-t border-[color:var(--line)] px-4 py-3">
             <span className="mono text-[11px] text-[color:var(--amber)]">{plates[0].sg}</span>
@@ -602,55 +711,92 @@ function Hero() {
   );
 }
 
+/* One media slot for both plate sizes. The poster carries the frame until we
+   know motion is welcome, so a reduced-motion visitor never gets an
+   un-pausable loop (WCAG 2.2.2) and never pays for the video bytes. */
+function PlateMedia({ o, className }: { o: Obj; className: string }) {
+  const motionOk = useMotionOk();
+  if (o.media) {
+    return (
+      <video
+        key={motionOk ? "motion" : "still"}
+        src={motionOk ? o.media : undefined}
+        poster={o.media.replace(/\.mp4$/, ".jpg")}
+        className={className}
+        autoPlay={motionOk}
+        loop
+        muted
+        playsInline
+        preload={motionOk ? "metadata" : "none"}
+      />
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={o.thumb} alt={`${o.name} — ${o.type}`} className={className} loading="lazy" />
+  );
+}
+
 function Plate({ o }: { o: Obj }) {
-  const ref = useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const on = useRef(false);
+  const box = useRef<DOMRect | null>(null);
   useEffect(() => {
     on.current = canHover();
   }, []);
+  const enter = () => {
+    if (on.current && ref.current) box.current = ref.current.getBoundingClientRect();
+  };
   const move = (e: React.MouseEvent) => {
     const el = ref.current;
-    if (!on.current || !el) return;
-    const r = el.getBoundingClientRect();
+    const r = box.current;
+    if (!on.current || !el || !r) return;
     const rx = ((0.5 - (e.clientY - r.top) / r.height) * 5).toFixed(2);
     const ry = (((e.clientX - r.left) / r.width - 0.5) * 6).toFixed(2);
     el.style.transition = "box-shadow 0.4s, border-color 0.4s";
     el.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
   };
   const leave = () => {
+    box.current = null;
     const el = ref.current;
     if (!el) return;
     el.style.transition = "transform 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s, border-color 0.4s";
     el.style.transform = "";
   };
-  const href = o.live || o.source;
+  const primary = o.live || o.source;
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+    <article
       ref={ref}
+      onMouseEnter={enter}
       onMouseMove={move}
       onMouseLeave={leave}
       className="reveal group relative block overflow-hidden border border-[color:var(--line-strong)] hover:border-[color:var(--amber)]/45"
       style={{ transformStyle: "preserve-3d" }}
     >
       <div className="relative aspect-[16/10] overflow-hidden">
-        {o.media ? (
-          <video src={o.media} poster={o.media.replace(/\.mp4$/, ".jpg")} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" autoPlay loop muted playsInline preload="metadata" />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={o.thumb} alt={`${o.name} — ${o.type}`} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-        )}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 45%, rgba(8,10,16,0.92) 100%)" }} />
+        <PlateMedia o={o} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, transparent 45%, rgba(var(--ground-rgb),0.92) 100%)" }}
+        />
         <div className="mono absolute left-3 top-3 flex items-center gap-2 text-[10px]">
-          <span className="bg-[color:var(--amber)] px-1.5 py-0.5 text-[#1a1206]">{o.sg}</span>
+          <span className="bg-[color:var(--amber)] px-1.5 py-0.5 text-[color:var(--ink)]">{o.sg}</span>
           <span className="text-[color:var(--dim)]">{o.type}</span>
         </div>
       </div>
       <div className="p-5 sm:p-6">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="display text-3xl font-medium text-[color:var(--starlight)] sm:text-4xl">{o.name}</h3>
+          <h3 className="display text-3xl font-medium text-[color:var(--starlight)] sm:text-4xl">
+            {/* the plate is one target; the pseudo-element stretches this link over it */}
+            <a
+              href={primary}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-[color:var(--amber)]"
+            >
+              {o.name}
+            </a>
+          </h3>
           <span className="mono shrink-0 text-[10px] text-[color:var(--faint)]">{o.date}</span>
         </div>
         <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-[color:var(--dim)]">{o.blurb}</p>
@@ -658,11 +804,18 @@ function Plate({ o }: { o: Obj }) {
           <span className="text-[color:var(--faint)]">{o.instrument}</span>
           <span className="ml-auto flex items-center gap-4">
             {o.live && <span className="text-[color:var(--amber)]">Open instrument</span>}
-            <span className="text-[color:var(--dim)]">Source</span>
+            <a
+              href={o.source}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-10 text-[color:var(--dim)] underline decoration-transparent underline-offset-4 transition-colors hover:text-[color:var(--amber)] hover:decoration-[color:var(--amber)]"
+            >
+              Source
+            </a>
           </span>
         </div>
       </div>
-    </a>
+    </article>
   );
 }
 
@@ -775,7 +928,7 @@ function Transmit() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [channels, setChannels] = useState<string[]>([]);
-  const send = useMagnetic<HTMLButtonElement>(0.22);
+  const sendRef = useMagnetic<HTMLButtonElement>(0.22);
 
   const toggle = (c: string) =>
     setChannels((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
@@ -788,7 +941,7 @@ function Transmit() {
   };
 
   const fieldCls =
-    "mt-2 w-full border border-[color:var(--line-strong)] bg-transparent px-3.5 py-2.5 text-[14px] text-[color:var(--starlight)] outline-none placeholder:text-[color:var(--faint)] focus:border-[color:var(--amber)]";
+    "mt-2 w-full border border-[color:var(--field-line)] bg-transparent px-3.5 py-2.5 text-[14px] text-[color:var(--starlight)] outline-none placeholder:text-[color:var(--faint)] focus:border-[color:var(--amber)]";
 
   return (
     <section id="transmit" className="relative scroll-mt-14 px-5 py-24 sm:px-8 sm:py-32">
@@ -811,25 +964,28 @@ function Transmit() {
           <label className="mono text-[11px] text-[color:var(--faint)]" htmlFor="name">Name</label>
           <input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Who is transmitting?" className={fieldCls} />
 
-          <p className="mono mt-5 text-[11px] text-[color:var(--faint)]">Preferred channel</p>
-          <div className="mt-2 flex gap-5">
-            {["Email", "Phone"].map((c) => (
-              <label key={c} className="flex items-center gap-2 text-[14px] text-[color:var(--dim)]">
-                <input type="checkbox" checked={channels.includes(c)} onChange={() => toggle(c)} className="h-4 w-4 accent-[color:var(--amber)]" />
-                {c}
-              </label>
-            ))}
-          </div>
+          <fieldset className="mt-5 border-0 p-0">
+            <legend className="mono text-[11px] text-[color:var(--faint)]">Preferred channel</legend>
+            <div className="mt-2 flex gap-5">
+              {["Email", "Phone"].map((c) => (
+                <label
+                  key={c}
+                  className="flex cursor-pointer items-center gap-2 py-1.5 text-[14px] text-[color:var(--dim)]"
+                >
+                  <input type="checkbox" checked={channels.includes(c)} onChange={() => toggle(c)} className="h-4 w-4 accent-[color:var(--amber)]" />
+                  {c}
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
           <label className="mono mt-5 block text-[11px] text-[color:var(--faint)]" htmlFor="msg">Message</label>
           <textarea id="msg" value={message} onChange={(e) => setMessage(e.target.value)} required rows={4} placeholder="What's the signal?" className={`${fieldCls} resize-none`} />
 
           <button
             type="submit"
-            ref={send.ref}
-            onMouseMove={send.onMouseMove}
-            onMouseLeave={send.onMouseLeave}
-            className="mono mt-6 w-full bg-[color:var(--amber)] py-3 text-[12px] font-bold text-[#1a1206] hover:bg-[color:var(--amber-deep)]"
+            ref={sendRef}
+            className="mono mt-6 w-full bg-[color:var(--amber)] py-3 text-[12px] font-bold text-[color:var(--ink)] hover:bg-[color:var(--amber-deep)]"
             style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.2s" }}
           >
             Transmit
@@ -879,13 +1035,20 @@ export default function Home() {
 
   return (
     <div className="relative">
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
+      <noscript>
+        {/* entrances are observer-driven; without JS every section must still show */}
+        <style>{`.reveal{opacity:1 !important}`}</style>
+      </noscript>
       <BackgroundLoop />
       <StarChart />
       <GridField />
       <CursorGlow />
       <ScrollProgress />
       <Header />
-      <main>
+      <main id="main" tabIndex={-1}>
         <Hero />
         <Catalogue />
         <Instrument />
