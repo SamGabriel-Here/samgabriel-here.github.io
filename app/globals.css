@@ -327,27 +327,41 @@ body {
   transform-origin: center;
   transform-box: fill-box;
 }
-@keyframes punchIn {
-  from {
+/* One cycle: a quick wave of punching, a long hold, then the plate clears and
+   is read again. The hold is most of the loop on purpose — a mark that never
+   settles pulls the eye away from the page it is supposed to sit quietly on. */
+@keyframes punchLoop {
+  0% {
     transform: scale(0);
     opacity: 0;
   }
-  60% {
+  4% {
     transform: scale(1.35);
     opacity: 1;
   }
-  to {
+  8%,
+  86% {
     transform: scale(1);
     opacity: 1;
   }
+  95%,
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
 }
 .plate-mark .bit-on {
-  animation: punchIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(0.45s + var(--i) * 45ms);
+  animation: punchLoop 6.5s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+  /* the stagger is only ~315ms across all eight, so the wave reads as one
+     gesture rather than eight separate blinks */
+  animation-delay: calc(0.35s + var(--i) * 45ms);
+}
+/* hovering the wordmark brightens the plate; it does not restart the loop */
+a:hover > .plate-mark {
+  color: var(--dim);
 }
 a:hover > .plate-mark .bit-on {
-  animation: punchIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--i) * 26ms);
+  filter: brightness(1.18);
 }
 
 /* amber bloom — the one glow, reserved for the things that are alight */

@@ -311,8 +311,14 @@ and do not apply `cursor: none` outside `.reticle-on`.
 `01000111`; those sixteen bits fill a 4x4 grid in reading order, and a filled amber
 hole is a one. Empty positions carry a faint ring so the grid reads as a card rather
 than a scatter. It appears in the header at 20px, in the footer at 16px, and as
-`app/icon.svg`, which replaced the Next.js default favicon. The holes punch in on
-first paint, staggered 45ms apart, and punch again on hover.
+`app/icon.svg`, which replaced the Next.js default favicon.
+
+The holes punch on a **6.5s loop**: a ~0.3s wave (staggered 45ms apart, so it reads
+as one gesture rather than eight blinks), then a hold for roughly five seconds, then
+the plate clears and is read again. The hold is deliberately most of the cycle — a
+mark that never settles pulls the eye away from the page it is meant to sit quietly
+on. Hover brightens the plate rather than restarting the loop. Under reduced motion
+it freezes fully punched.
 
 **The wordmark.** The name is set in the display face. In the hero, and only in the
 hero, the tittle of the **i** in Gabriel is replaced by a star with real diffraction
